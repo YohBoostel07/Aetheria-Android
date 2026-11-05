@@ -6,7 +6,8 @@ extends CharacterBody3D
 @export var camera_sensitivity: float = 0.006
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
-@onready var body_mesh: MeshInstance3D = $Body
+@onready var body_mesh: Node3D = $Body
+@onready var character_visual: Node3D = $Body
 
 var touch_move := Vector2.ZERO
 var camera_yaw := 0.0
@@ -17,7 +18,6 @@ var health := 100
 func _ready() -> void:
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     camera_yaw = rotation.y
-    _make_material()
 
 func _physics_process(delta: float) -> void:
     attack_cooldown = maxf(0.0, attack_cooldown - delta)
@@ -45,6 +45,7 @@ func _physics_process(delta: float) -> void:
     if Input.is_action_just_pressed("attack"):
         perform_attack()
     move_and_slide()
+    character_visual.animate_character(delta, Vector2(velocity.x, velocity.z).length(), not is_on_floor())
 
 func set_touch_move(value: Vector2) -> void:
     touch_move = value.limit_length(1.0)
@@ -57,17 +58,11 @@ func rotate_camera(delta_x: float, delta_y: float) -> void:
 func perform_attack() -> void:
     if attack_cooldown > 0.0:
         return
-    attack_cooldown = 0.45
-    print("Aetheria: ataque!")
+    attack_cooldown = 0.55
+    character_visual.play_attack()
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
         rotate_camera(event.relative.x, event.relative.y)
     if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
-func _make_material() -> void:
-    var material := StandardMaterial3D.new()
-    material.albedo_color = Color(0.16, 0.32, 0.58)
-    material.roughness = 0.82
-    body_mesh.material_override = material
