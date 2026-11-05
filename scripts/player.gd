@@ -7,7 +7,7 @@ extends CharacterBody3D
 
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 @onready var body_mesh: Node3D = $Body
-@onready var character_visual: Node3D = $Body
+@onready var character_visual = $Body
 
 var touch_move := Vector2.ZERO
 var camera_yaw := 0.0
@@ -32,7 +32,7 @@ func _physics_process(delta: float) -> void:
     if direction.length() > 0.05:
         velocity.x = move_toward(velocity.x, direction.x * move_speed, acceleration * delta)
         velocity.z = move_toward(velocity.z, direction.z * move_speed, acceleration * delta)
-        body_mesh.rotation.y = lerp_angle(body_mesh.rotation.y, atan2(direction.x, direction.z), 12.0 * delta)
+        body_mesh.rotation.y = lerp_angle(body_mesh.rotation.y, atan2(-direction.x, -direction.z), 12.0 * delta)
     else:
         velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
         velocity.z = move_toward(velocity.z, 0.0, acceleration * delta)
