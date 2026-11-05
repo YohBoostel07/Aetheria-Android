@@ -15,4 +15,3 @@ shadow_enabled = true
 light_energy = 1.15
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_world")
