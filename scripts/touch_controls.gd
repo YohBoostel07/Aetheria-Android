@@ -1,4 +1,4 @@
-extends CanvasLayer
+extends Control
 
 @export var player_path: NodePath
 @onready var player: CharacterBody3D = get_node(player_path)
@@ -16,7 +16,7 @@ func _ready() -> void:
     set_process_input(true)
 
 func _draw() -> void:
-    var size := get_viewport().get_visible_rect().size
+    var size := get_viewport_rect().size
     var base := Vector2(120, size.y - 125)
     draw_circle(base, joystick_radius, Color(0.05, 0.08, 0.12, 0.30))
     draw_arc(base, joystick_radius, 0, TAU, 48, Color(0.85, 0.91, 1, 0.55), 3.0)
@@ -40,9 +40,12 @@ func _input(event: InputEvent) -> void:
             _update_joystick(event.position)
         elif event.index == camera_touch:
             player.rotate_camera(event.relative.x, event.relative.y)
-    elif event is InputEventMouseButton and event.pressed:
-        if event.button_index == MOUSE_BUTTON_LEFT:
-            _touch_pressed(99, event.position)
+    elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+        _touch_pressed(99, event.position)
+    elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+        _touch_released(99)
+    elif event is InputEventMouseMotion and camera_touch == 99:
+        player.rotate_camera(event.relative.x, event.relative.y)
     elif event is InputEventMouseMotion and joystick_touch == 99:
         _update_joystick(event.position)
 
@@ -52,9 +55,9 @@ func _touch_pressed(index: int, pos: Vector2) -> void:
     elif button_jump.has_point(pos):
         if player.is_on_floor():
             player.velocity.y = player.jump_velocity
-    elif pos.x < get_viewport().get_visible_rect().size.x * 0.48 and joystick_touch == -1:
+    elif pos.x < get_viewport_rect().size.x * 0.48 and joystick_touch == -1:
         joystick_touch = index
-        joystick_origin = Vector2(120, get_viewport().get_visible_rect().size.y - 125)
+        joystick_origin = Vector2(120, get_viewport_rect().size.y - 125)
         _update_joystick(pos)
     elif camera_touch == -1:
         camera_touch = index
