@@ -14,6 +14,7 @@ var player: CharacterBody3D
 var body_mesh: MeshInstance3D
 var eye_material: StandardMaterial3D
 var body_material: StandardMaterial3D
+var health_label: Label3D
 var walk_phase := 0.0
 
 func _ready() -> void:
@@ -23,7 +24,7 @@ func _ready() -> void:
     _build_creature()
 
 func _physics_process(delta: float) -> void:
-    if player == null or not is_instance_valid(player) or player.health <= 0:
+    if player == null or not is_instance_valid(player) or int(player.get("health")) <= 0:
         velocity.x = move_toward(velocity.x, 0.0, 8.0 * delta)
         velocity.z = move_toward(velocity.z, 0.0, 8.0 * delta)
         move_and_slide()
@@ -46,7 +47,7 @@ func _physics_process(delta: float) -> void:
         velocity.z = move_toward(velocity.z, 0.0, 12.0 * delta)
         if attack_timer <= 0.0:
             attack_timer = attack_interval
-            player.take_damage(attack_damage)
+            player.call("take_damage", attack_damage)
 
     if not is_on_floor():
         velocity.y -= 9.8 * delta
@@ -59,6 +60,8 @@ func _physics_process(delta: float) -> void:
 
 func take_damage(amount: int) -> void:
     health = maxi(0, health - amount)
+    if health_label != null:
+        health_label.text = "Sombrio  %d/%d" % [health, max_health]
     hit_flash = 0.16
     if health <= 0:
         queue_free()
@@ -93,14 +96,14 @@ func _build_creature() -> void:
     _limb("Left arm", Vector3(-0.43, 1.12, 0), Vector3(0.13, 0.48, 0.13))
     _limb("Right arm", Vector3(0.43, 1.12, 0), Vector3(0.13, 0.48, 0.13))
 
-    var label := Label3D.new()
-    label.text = "Sombrio  60/60"
-    label.position = Vector3(0, 2.35, 0)
-    label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    label.font_size = 32
-    label.outline_size = 6
-    label.modulate = Color(1.0, 0.82, 0.82)
-    add_child(label)
+    health_label = Label3D.new()
+    health_label.text = "Sombrio  %d/%d" % [health, max_health]
+    health_label.position = Vector3(0, 2.35, 0)
+    health_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    health_label.font_size = 32
+    health_label.outline_size = 6
+    health_label.modulate = Color(1.0, 0.82, 0.82)
+    add_child(health_label)
 
 func _sphere(part_name: String, part_position: Vector3, radius: float, color: Color) -> void:
     var mesh_instance := MeshInstance3D.new()
