@@ -33,9 +33,12 @@ func _draw() -> void:
     draw_string(ThemeDB.fallback_font, button_jump.position + Vector2(18, 40), "PULO", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
     draw_string(ThemeDB.fallback_font, Vector2(34, 42), "VIDA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
     draw_rect(Rect2(34, 51, 210, 18), Color(0.04, 0.06, 0.08, 0.72), true)
-    var current_health := clampf(float(player.get("health")), 0.0, 100.0)
-    var health_color := Color(0.2, 0.78, 0.35) if current_health > 30.0 else Color(0.88, 0.2, 0.16)
-    draw_rect(Rect2(37, 54, 204.0 * current_health / 100.0, 12), health_color, true)
+    var maximum_health := maxf(1.0, float(player.get("max_health")))
+    var current_health := clampf(float(player.get("health")), 0.0, maximum_health)
+    var health_ratio := current_health / maximum_health
+    var health_color := Color(0.2, 0.78, 0.35) if health_ratio > 0.3 else Color(0.88, 0.2, 0.16)
+    draw_string(ThemeDB.fallback_font, Vector2(250, 66), "%d/%d" % [int(current_health), int(maximum_health)], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+    draw_rect(Rect2(37, 54, 204.0 * health_ratio, 12), health_color, true)
     draw_rect(Rect2(34, 51, 210, 18), Color(1, 1, 1, 0.72), false, 2.0)
 
 func _input(event: InputEvent) -> void:
