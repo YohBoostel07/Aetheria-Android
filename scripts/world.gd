@@ -4,12 +4,20 @@ const ENEMY_SCRIPT = preload("res://scripts/enemy.gd")
 
 var rng := RandomNumberGenerator.new()
 var bark_material: StandardMaterial3D
+var branch_material: StandardMaterial3D
 var leaf_materials: Array[StandardMaterial3D] = []
+var leaf_light_materials: Array[StandardMaterial3D] = []
 var stone_material: StandardMaterial3D
 var dark_stone_material: StandardMaterial3D
 var path_material: StandardMaterial3D
 var crystal_material: StandardMaterial3D
 var torch_material: StandardMaterial3D
+var quest_label: Label
+var quest_detail_label: Label
+var enemies_defeated := 0
+var quest_complete := false
+var experience := 0
+var shrine_crystal_light: OmniLight3D
 
 func _ready() -> void:
     rng.seed = 48291
@@ -21,10 +29,22 @@ func _ready() -> void:
     _create_rock_fields()
     _create_ancient_shrine()
     _create_torches()
+    _create_quest_hud()
     _spawn_enemies()
+    _refresh_quest_hud()
+
+func _process(_delta: float) -> void:
+    if enemies_defeated >= 3 and not quest_complete:
+        var player := get_node_or_null("Player") as Node3D
+        if player != null:
+            var player_flat := Vector2(player.global_position.x, player.global_position.z)
+            var crystal_flat := Vector2(0.0, -35.45)
+            if player_flat.distance_to(crystal_flat) <= 4.5:
+                _complete_quest()
 
 func _create_materials() -> void:
     bark_material = _material(Color(0.25, 0.14, 0.085), 1.0)
+    branch_material = _material(Color(0.19, 0.105, 0.065), 1.0)
     stone_material = _material(Color(0.38, 0.42, 0.46), 0.95)
     dark_stone_material = _material(Color(0.20, 0.24, 0.29), 1.0)
     path_material = _material(Color(0.48, 0.43, 0.34), 1.0)
@@ -37,10 +57,15 @@ func _create_materials() -> void:
     torch_material.emission = Color(1.0, 0.19, 0.025)
     torch_material.emission_energy_multiplier = 2.2
     leaf_materials = [
-        _material(Color(0.10, 0.29, 0.15), 1.0),
-        _material(Color(0.13, 0.36, 0.18), 1.0),
-        _material(Color(0.18, 0.40, 0.20), 1.0),
-        _material(Color(0.22, 0.34, 0.15), 1.0)
+        _material(Color(0.055, 0.20, 0.095), 0.96),
+        _material(Color(0.075, 0.27, 0.11), 0.96),
+        _material(Color(0.12, 0.33, 0.14), 0.94),
+        _material(Color(0.18, 0.38, 0.16), 0.94),
+        _material(Color(0.23, 0.34, 0.12), 0.96)
+    ]
+    leaf_light_materials = [
+        _material(Color(0.19, 0.39, 0.16), 0.94),
+        _material(Color(0.25, 0.43, 0.18), 0.94)
     ]
 
 func _material(color: Color, roughness_value: float = 0.85, metallic_value: float = 0.0) -> StandardMaterial3D:
@@ -75,7 +100,6 @@ func _create_ground() -> void:
     var ground := StaticBody3D.new()
     ground.name = "Ground"
     add_child(ground)
-
     var mesh_instance := MeshInstance3D.new()
     var plane := PlaneMesh.new()
     plane.size = Vector2(180, 180)
@@ -83,7 +107,6 @@ func _create_ground() -> void:
     var grass := _material(Color(0.20, 0.36, 0.20), 1.0)
     mesh_instance.material_override = grass
     ground.add_child(mesh_instance)
-
     var collision := CollisionShape3D.new()
     var shape := BoxShape3D.new()
     shape.size = Vector3(180, 0.3, 180)
@@ -101,7 +124,6 @@ func _create_path() -> void:
         stone.rotation.y = rng.randf_range(-0.18, 0.18)
         stone.material_override = path_material if i % 3 != 0 else stone_material
         add_child(stone)
-
     for i in range(22):
         var pebble := MeshInstance3D.new()
         var mesh := SphereMesh.new()
@@ -122,7 +144,6 @@ func _create_forest() -> void:
         if near_path or near_spawn or near_shrine:
             continue
         _create_tree(position, rng.randf_range(0.82, 1.35))
-
     for i in range(34):
         var grass := MeshInstance3D.new()
         var blade := CylinderMesh.new()
@@ -142,25 +163,86 @@ func _create_tree(tree_position: Vector3, scale_value: float) -> void:
     tree.scale = Vector3.ONE * scale_value
     add_child(tree)
 
+    var trunk_height := rng.randf_range(3.5, 4.5)
     var trunk := MeshInstance3D.new()
     var trunk_mesh := CylinderMesh.new()
-    trunk_mesh.top_radius = 0.20
-    trunk_mesh.bottom_radius = 0.34
-    trunk_mesh.height = 2.6
+    trunk_mesh.top_radius = rng.randf_range(0.13, 0.19)
+    trunk_mesh.bottom_radius = rng.randf_range(0.31, 0.39)
+    trunk_mesh.height = trunk_height
     trunk.mesh = trunk_mesh
-    trunk.position.y = 1.3
+    trunk.position.y = trunk_height * 0.5
+    trunk.rotation.z = rng.randf_range(-0.035, 0.035)
     trunk.material_override = bark_material
     tree.add_child(trunk)
 
-    for j in range(3):
-        var crown := MeshInstance3D.new()
-        var crown_mesh := SphereMesh.new()
-        crown_mesh.radius = 1.15 - float(j) * 0.10
-        crown_mesh.height = 2.15 - float(j) * 0.12
-        crown.mesh = crown_mesh
-        crown.position = Vector3(0, 2.55 + float(j) * 0.62, 0)
-        crown.material_override = leaf_materials[rng.randi_range(0, leaf_materials.size() - 1)]
-        tree.add_child(crown)
+    # Raised bark ridges make the trunk less like a smooth primitive.
+    for ridge_index in range(4):
+        var ridge := MeshInstance3D.new()
+        var ridge_mesh := CylinderMesh.new()
+        ridge_mesh.top_radius = 0.025
+        ridge_mesh.bottom_radius = 0.055
+        ridge_mesh.height = trunk_height * rng.randf_range(0.55, 0.88)
+        ridge.mesh = ridge_mesh
+        var angle := TAU * float(ridge_index) / 4.0
+        ridge.position = Vector3(cos(angle) * 0.19, ridge_mesh.height * 0.5, sin(angle) * 0.19)
+        ridge.rotation.z = rng.randf_range(-0.04, 0.04)
+        ridge.material_override = branch_material
+        tree.add_child(ridge)
+
+    # Several thick, tapered boughs visibly emerge from the trunk.
+    for branch_index in range(6):
+        var angle := TAU * float(branch_index) / 6.0 + rng.randf_range(-0.22, 0.22)
+        var start_height := rng.randf_range(1.65, 2.85)
+        var length := rng.randf_range(1.25, 2.0)
+        var rise := rng.randf_range(0.65, 1.25)
+        var direction := Vector3(cos(angle) * length, rise, sin(angle) * length)
+        _create_branch(tree, Vector3(0, start_height, 0), direction, rng.randf_range(0.10, 0.15))
+
+    # A layered, irregular crown made of many overlapping leaf masses.
+    var crown_center := Vector3(0, trunk_height + 0.15, 0)
+    for cluster_index in range(15):
+        var angle := rng.randf_range(0.0, TAU)
+        var ring := rng.randf_range(0.25, 1.35)
+        var cluster := MeshInstance3D.new()
+        var foliage := SphereMesh.new()
+        foliage.radius = rng.randf_range(0.58, 0.88)
+        foliage.height = rng.randf_range(1.05, 1.65)
+        foliage.radial_segments = 10
+        foliage.rings = 6
+        cluster.mesh = foliage
+        cluster.position = crown_center + Vector3(cos(angle) * ring, rng.randf_range(-0.45, 1.15), sin(angle) * ring)
+        cluster.scale = Vector3(rng.randf_range(0.9, 1.35), rng.randf_range(0.75, 1.1), rng.randf_range(0.9, 1.3))
+        cluster.material_override = leaf_materials[rng.randi_range(0, leaf_materials.size() - 1)]
+        tree.add_child(cluster)
+
+    # Smaller brighter leaf clusters break up the silhouette and add depth.
+    for leaf_index in range(10):
+        var angle := rng.randf_range(0.0, TAU)
+        var leaf := MeshInstance3D.new()
+        var leaf_mesh := SphereMesh.new()
+        leaf_mesh.radius = rng.randf_range(0.18, 0.31)
+        leaf_mesh.height = rng.randf_range(0.28, 0.48)
+        leaf_mesh.radial_segments = 8
+        leaf_mesh.rings = 5
+        leaf.mesh = leaf_mesh
+        leaf.position = crown_center + Vector3(cos(angle) * rng.randf_range(0.55, 1.55), rng.randf_range(-0.35, 1.4), sin(angle) * rng.randf_range(0.55, 1.55))
+        leaf.rotation = Vector3(rng.randf_range(-0.5, 0.5), angle, rng.randf_range(-0.5, 0.5))
+        leaf.material_override = leaf_light_materials[rng.randi_range(0, leaf_light_materials.size() - 1)]
+        tree.add_child(leaf)
+
+func _create_branch(parent: Node3D, start: Vector3, direction: Vector3, thickness: float) -> void:
+    var branch := MeshInstance3D.new()
+    var mesh := CylinderMesh.new()
+    mesh.top_radius = thickness * 0.42
+    mesh.bottom_radius = thickness
+    mesh.height = direction.length()
+    mesh.radial_segments = 7
+    branch.mesh = mesh
+    branch.position = start + direction * 0.5
+    branch.look_at(branch.position + direction.normalized(), Vector3.UP)
+    branch.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+    branch.material_override = branch_material
+    parent.add_child(branch)
 
 func _create_rock_fields() -> void:
     for i in range(30):
@@ -182,22 +264,18 @@ func _create_ancient_shrine() -> void:
     shrine.name = "AncientShrine"
     shrine.position = Vector3(0, 0, -35)
     add_child(shrine)
-
     _box(shrine, "Shrine platform", Vector3(0, 0.18, 0), Vector3(10, 0.36, 7), dark_stone_material)
     _box(shrine, "Upper step", Vector3(0, 0.43, 0.1), Vector3(7.5, 0.22, 5.2), stone_material)
-
     for side in [-1.0, 1.0]:
         for depth in [-1.0, 1.0]:
             _box(shrine, "Ancient pillar", Vector3(side * 3.1, 2.05, depth * 1.75), Vector3(0.72, 3.25, 0.72), stone_material)
             _box(shrine, "Pillar base", Vector3(side * 3.1, 0.62, depth * 1.75), Vector3(1.05, 0.34, 1.05), dark_stone_material)
-
     _box(shrine, "Broken lintel", Vector3(0, 3.82, -1.75), Vector3(7.0, 0.55, 0.85), dark_stone_material)
     _box(shrine, "Altar", Vector3(0, 1.05, -0.45), Vector3(2.2, 1.1, 1.55), dark_stone_material)
     _box(shrine, "Altar top", Vector3(0, 1.66, -0.45), Vector3(2.65, 0.18, 1.9), stone_material)
     _create_crystal(shrine, Vector3(0, 2.45, -0.45), 1.0)
     _create_crystal(shrine, Vector3(-4.4, 1.1, 0), 0.55)
     _create_crystal(shrine, Vector3(4.4, 1.1, 0), 0.55)
-
     var title := Label3D.new()
     title.text = "SANTUARIO ANTIGO"
     title.position = Vector3(0, 4.8, -1.8)
@@ -220,13 +298,14 @@ func _create_crystal(parent: Node3D, crystal_position: Vector3, scale_value: flo
     crystal.scale = Vector3.ONE * scale_value
     crystal.material_override = crystal_material
     parent.add_child(crystal)
-
     var light := OmniLight3D.new()
     light.position = crystal_position
     light.light_color = Color(0.12, 0.55, 1.0)
     light.light_energy = 0.8
     light.omni_range = 5.0 * scale_value
     parent.add_child(light)
+    if scale_value >= 1.0:
+        shrine_crystal_light = light
 
 func _create_torches() -> void:
     for z_position in [-13.0, -27.0, -38.0]:
@@ -258,6 +337,64 @@ func _create_torches() -> void:
             light.omni_range = 5.0
             torch.add_child(light)
 
+func _create_quest_hud() -> void:
+    var layer := CanvasLayer.new()
+    layer.name = "QuestHUD"
+    layer.layer = 5
+    add_child(layer)
+    var panel := ColorRect.new()
+    panel.position = Vector2(270, 28)
+    panel.size = Vector2(430, 112)
+    panel.color = Color(0.025, 0.045, 0.075, 0.82)
+    layer.add_child(panel)
+    var title := Label.new()
+    title.position = Vector2(288, 38)
+    title.size = Vector2(400, 30)
+    title.text = "MISSÃO: O SEGREDO DO SANTUÁRIO"
+    title.add_theme_font_size_override("font_size", 19)
+    title.add_theme_color_override("font_color", Color(0.60, 0.83, 1.0))
+    layer.add_child(title)
+    quest_label = Label.new()
+    quest_label.position = Vector2(288, 70)
+    quest_label.size = Vector2(390, 28)
+    quest_label.add_theme_font_size_override("font_size", 18)
+    quest_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+    layer.add_child(quest_label)
+    quest_detail_label = Label.new()
+    quest_detail_label.position = Vector2(288, 98)
+    quest_detail_label.size = Vector2(390, 26)
+    quest_detail_label.add_theme_font_size_override("font_size", 16)
+    quest_detail_label.add_theme_color_override("font_color", Color(0.72, 0.80, 0.88))
+    layer.add_child(quest_detail_label)
+
+func _refresh_quest_hud() -> void:
+    if quest_complete:
+        quest_label.text = "Missão concluída!"
+        quest_detail_label.text = "Recompensa recebida: +100 EXP"
+    elif enemies_defeated < 3:
+        quest_label.text = "Derrote os Sombrio  (%d/3)" % enemies_defeated
+        quest_detail_label.text = "Encontre os inimigos pela trilha"
+    else:
+        quest_label.text = "Todos os Sombrio foram derrotados"
+        quest_detail_label.text = "Aproxime-se do cristal no santuário"
+
+func _on_enemy_defeated() -> void:
+    if quest_complete:
+        return
+    enemies_defeated = mini(enemies_defeated + 1, 3)
+    _refresh_quest_hud()
+
+func _complete_quest() -> void:
+    if quest_complete:
+        return
+    quest_complete = true
+    experience += 100
+    if shrine_crystal_light != null:
+        shrine_crystal_light.light_energy = 2.8
+        shrine_crystal_light.omni_range = 11.0
+        shrine_crystal_light.light_color = Color(0.28, 0.78, 1.0)
+    _refresh_quest_hud()
+
 func _box(parent: Node3D, part_name: String, part_position: Vector3, dimensions: Vector3, material: Material) -> void:
     var part := MeshInstance3D.new()
     part.name = part_name
@@ -280,4 +417,5 @@ func _spawn_enemies() -> void:
         enemy.set_script(ENEMY_SCRIPT)
         enemy.set("player_path", NodePath("../Player"))
         enemy.position = spawn_points[i]
+        enemy.connect("defeated", Callable(self, "_on_enemy_defeated"))
         add_child(enemy)
