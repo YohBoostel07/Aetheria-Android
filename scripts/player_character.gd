@@ -64,7 +64,7 @@ func _material(color: Color, roughness_value: float = 0.82, metallic_value: floa
     return material
 
 func _build_character() -> void:
-    # Detailed dark-blue adventurer outfit with layered armor and royal-blue cloak.
+    # Tailored dark-blue tunic with layered chest and waist details.
     _capsule_part("Tunic", Vector3(0, 0.06, 0), 0.34, 0.78, tunic_material)
     _box_part("Chest panel", Vector3(0, 0.12, -0.285), Vector3(0.39, 0.43, 0.045), dark_cloth)
     _box_part("Center blue trim", Vector3(0, 0.12, -0.313), Vector3(0.045, 0.42, 0.018), cape_material)
@@ -115,6 +115,7 @@ func _build_character() -> void:
     _capsule_child(right_arm, "Leather forearm guard", 0.105, 0.30, leather_material, Vector3(0, -0.36, -0.015))
     _sphere_child(right_arm, "Glove", Vector3(0, -0.51, -0.015), 0.12, dark_cloth)
     _create_sword(right_arm)
+    _sphere_part("Shoulder armor left", Vector3(-0.39, 0.39, -0.015), 0.19, metal_material, Vector3(1.0, 0.72, 1.15))
 
 func _hair_spike(base: Vector3, tip_offset: Vector3, radius_value: float) -> void:
     var spike := MeshInstance3D.new()
