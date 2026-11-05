@@ -76,7 +76,7 @@ func perform_attack() -> void:
     for hit in get_world_3d().direct_space_state.intersect_shape(query, 12):
         var target := hit.get("collider") as Node
         if target != null and target.is_in_group("enemies") and target.has_method("take_damage"):
-            target.take_damage(30)
+            target.call("take_damage", 30)
 
 func take_damage(amount: int) -> void:
     if is_dead or amount <= 0:
