@@ -15,6 +15,9 @@ func _ready() -> void:
     get_viewport().size_changed.connect(queue_redraw)
     set_process_input(true)
 
+func _process(_delta: float) -> void:
+    queue_redraw()
+
 func _draw() -> void:
     var size := get_viewport_rect().size
     var base := Vector2(120, size.y - 125)
@@ -28,6 +31,12 @@ func _draw() -> void:
     draw_circle(button_jump.position + button_jump.size / 2, 34, Color(0.22, 0.52, 0.82, 0.72))
     draw_string(ThemeDB.fallback_font, button_attack.position + Vector2(29, 47), "ATK", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
     draw_string(ThemeDB.fallback_font, button_jump.position + Vector2(18, 40), "PULO", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+    draw_string(ThemeDB.fallback_font, Vector2(34, 42), "VIDA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+    draw_rect(Rect2(34, 51, 210, 18), Color(0.04, 0.06, 0.08, 0.72), true)
+    var current_health := clampf(float(player.get("health")), 0.0, 100.0)
+    var health_color := Color(0.2, 0.78, 0.35) if current_health > 30.0 else Color(0.88, 0.2, 0.16)
+    draw_rect(Rect2(37, 54, 204.0 * current_health / 100.0, 12), health_color, true)
+    draw_rect(Rect2(34, 51, 210, 18), Color(1, 1, 1, 0.72), false, 2.0)
 
 func _input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
