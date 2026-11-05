@@ -251,31 +251,19 @@ func _create_branch(parent: Node3D, start: Vector3, direction: Vector3, thicknes
     parent.add_child(branch)
 
 func _create_rock_fields() -> void:
-    for i in range(68):
+    for i in range(30):
         var rock := MeshInstance3D.new()
         var mesh := SphereMesh.new()
-        mesh.radius = rng.randf_range(0.32, 1.05)
-        mesh.height = mesh.radius * rng.randf_range(1.05, 1.65)
-        mesh.radial_segments = 9
-        mesh.rings = 6
+        mesh.radius = rng.randf_range(0.35, 0.85)
+        mesh.height = mesh.radius * 1.5
         rock.mesh = mesh
-        rock.scale = Vector3(rng.randf_range(0.85, 1.75), rng.randf_range(0.55, 1.0), rng.randf_range(0.8, 1.55))
-        rock.rotation = Vector3(rng.randf_range(-0.3, 0.3), rng.randf_range(0, TAU), rng.randf_range(-0.3, 0.3))
-        rock.position = Vector3(rng.randf_range(-48, 48), 0.25, rng.randf_range(-48, 48))
+        rock.scale = Vector3(rng.randf_range(0.9, 1.7), rng.randf_range(0.65, 1.1), rng.randf_range(0.8, 1.4))
+        rock.position = Vector3(rng.randf_range(-48, 48), 0.28, rng.randf_range(-48, 48))
         if rock.position.distance_to(Vector3(0, 0, 4)) < 8.0 or (absf(rock.position.x) < 3.0 and rock.position.z < 7.0 and rock.position.z > -38.0):
+            rock.queue_free()
             continue
-        rock.material_override = stone_material if i % 3 != 0 else dark_stone_material
+        rock.material_override = stone_material if i % 2 == 0 else dark_stone_material
         add_child(rock)
-        for chip_index in range(2):
-            var chip := MeshInstance3D.new()
-            var chip_mesh := SphereMesh.new()
-            chip_mesh.radius = rng.randf_range(0.12, 0.24)
-            chip_mesh.height = chip_mesh.radius * 1.2
-            chip.mesh = chip_mesh
-            chip.scale = Vector3(1.4, 0.7, 1.1)
-            chip.position = rock.position + Vector3(rng.randf_range(-0.8, 0.8), 0.12, rng.randf_range(-0.8, 0.8))
-            chip.material_override = dark_stone_material
-            add_child(chip)
 
 func _create_ancient_shrine() -> void:
     var shrine := Node3D.new()
