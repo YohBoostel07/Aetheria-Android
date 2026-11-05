@@ -115,7 +115,13 @@ func _build_character() -> void:
     _capsule_child(right_arm, "Leather forearm guard", 0.105, 0.30, leather_material, Vector3(0, -0.36, -0.015))
     _sphere_child(right_arm, "Glove", Vector3(0, -0.51, -0.015), 0.12, dark_cloth)
     _create_sword(right_arm)
-    _sphere_part("Shoulder armor left", Vector3(-0.39, 0.39, -0.015), 0.19, metal_material, Vector3(1.0, 0.72, 1.15))
+    _sphere_part("Shoulder armor right", Vector3(0.39, 0.39, -0.015), 0.19, metal_material, Vector3(1.0, 0.72, 1.15))
+    _box_part("Chest armor lower plate", Vector3(0, -0.015, -0.305), Vector3(0.48, 0.23, 0.055), leather_material)
+    _box_part("Cape left gold piping", Vector3(-0.31, -0.10, 0.292), Vector3(0.035, 0.92, 0.025), gold_material)
+    _box_part("Cape right gold piping", Vector3(0.31, -0.10, 0.292), Vector3(0.035, 0.92, 0.025), gold_material)
+    _box_part("Cape gold hem", Vector3(0, -0.70, 0.292), Vector3(0.62, 0.035, 0.025), gold_material)
+    _box_part("Left knee plate", Vector3(-0.17, -0.61, -0.16), Vector3(0.23, 0.18, 0.09), metal_material)
+    _box_part("Right knee plate", Vector3(0.17, -0.61, -0.16), Vector3(0.23, 0.18, 0.09), metal_material)
 
 func _hair_spike(base: Vector3, tip_offset: Vector3, radius_value: float) -> void:
     var spike := MeshInstance3D.new()
