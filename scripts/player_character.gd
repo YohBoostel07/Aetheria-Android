@@ -64,7 +64,7 @@ func _material(color: Color, roughness_value: float = 0.82, metallic_value: floa
     return material
 
 func _build_character() -> void:
-    # Tailored dark-blue tunic with layered chest and waist details.
+    # Detailed dark-blue adventurer outfit with layered armor and royal-blue cloak.
     _capsule_part("Tunic", Vector3(0, 0.06, 0), 0.34, 0.78, tunic_material)
     _box_part("Chest panel", Vector3(0, 0.12, -0.285), Vector3(0.39, 0.43, 0.045), dark_cloth)
     _box_part("Center blue trim", Vector3(0, 0.12, -0.313), Vector3(0.045, 0.42, 0.018), cape_material)
