@@ -167,83 +167,72 @@ func _create_tree(tree_position: Vector3, scale_value: float) -> void:
     var tree := Node3D.new()
     tree.position = tree_position
     tree.scale = Vector3.ONE * scale_value
-    tree.rotation.y = rng.randf_range(0.0, TAU)
     add_child(tree)
-    var trunk_height := rng.randf_range(4.0, 5.8)
+
+    var trunk_height := rng.randf_range(3.5, 4.5)
     var trunk := MeshInstance3D.new()
     var trunk_mesh := CylinderMesh.new()
-    trunk_mesh.top_radius = rng.randf_range(0.10, 0.17)
-    trunk_mesh.bottom_radius = rng.randf_range(0.34, 0.48)
+    trunk_mesh.top_radius = rng.randf_range(0.13, 0.19)
+    trunk_mesh.bottom_radius = rng.randf_range(0.31, 0.39)
     trunk_mesh.height = trunk_height
-    trunk_mesh.radial_segments = 10
     trunk.mesh = trunk_mesh
     trunk.position.y = trunk_height * 0.5
-    trunk.rotation.z = rng.randf_range(-0.055, 0.055)
+    trunk.rotation.z = rng.randf_range(-0.035, 0.035)
     trunk.material_override = bark_material
     tree.add_child(trunk)
-    for root_index in range(6):
-        var angle := TAU * float(root_index) / 6.0 + rng.randf_range(-0.2, 0.2)
-        var root := MeshInstance3D.new()
-        var root_mesh := CylinderMesh.new()
-        root_mesh.top_radius = 0.025
-        root_mesh.bottom_radius = 0.19
-        root_mesh.height = rng.randf_range(0.75, 1.25)
-        root_mesh.radial_segments = 6
-        root.mesh = root_mesh
-        var direction := Vector3(cos(angle), -0.15, sin(angle))
-        root.position = Vector3(0, 0.20, 0) + direction * 0.42
-        root.look_at(root.position + direction, Vector3.UP)
-        root.rotate_object_local(Vector3.RIGHT, PI * 0.5)
-        root.material_override = branch_material
-        tree.add_child(root)
-    for ridge_index in range(8):
+
+    # Raised bark ridges make the trunk less like a smooth primitive.
+    for ridge_index in range(4):
         var ridge := MeshInstance3D.new()
         var ridge_mesh := CylinderMesh.new()
-        ridge_mesh.top_radius = 0.012
-        ridge_mesh.bottom_radius = 0.045
-        ridge_mesh.height = trunk_height * rng.randf_range(0.55, 0.92)
-        ridge_mesh.radial_segments = 5
+        ridge_mesh.top_radius = 0.025
+        ridge_mesh.bottom_radius = 0.055
+        ridge_mesh.height = trunk_height * rng.randf_range(0.55, 0.88)
         ridge.mesh = ridge_mesh
-        var angle := TAU * float(ridge_index) / 8.0
+        var angle := TAU * float(ridge_index) / 4.0
         ridge.position = Vector3(cos(angle) * 0.19, ridge_mesh.height * 0.5, sin(angle) * 0.19)
+        ridge.rotation.z = rng.randf_range(-0.04, 0.04)
         ridge.material_override = branch_material
         tree.add_child(ridge)
-    for branch_index in range(9):
-        var angle := TAU * float(branch_index) / 9.0 + rng.randf_range(-0.25, 0.25)
-        var start_height := rng.randf_range(1.8, trunk_height - 0.35)
-        var length := rng.randf_range(1.35, 2.45)
-        var rise := rng.randf_range(0.65, 1.45)
+
+    # Several thick, tapered boughs visibly emerge from the trunk.
+    for branch_index in range(6):
+        var angle := TAU * float(branch_index) / 6.0 + rng.randf_range(-0.22, 0.22)
+        var start_height := rng.randf_range(1.65, 2.85)
+        var length := rng.randf_range(1.25, 2.0)
+        var rise := rng.randf_range(0.65, 1.25)
         var direction := Vector3(cos(angle) * length, rise, sin(angle) * length)
-        _create_branch(tree, Vector3(0, start_height, 0), direction, rng.randf_range(0.09, 0.16))
-        if branch_index % 2 == 0:
-            _create_branch(tree, Vector3(0, start_height + 0.3, 0) + direction * 0.55, Vector3(cos(angle + 0.8) * 0.9, 0.7, sin(angle + 0.8) * 0.9), 0.055)
-    var crown_center := Vector3(0, trunk_height + 0.25, 0)
-    for cluster_index in range(28):
+        _create_branch(tree, Vector3(0, start_height, 0), direction, rng.randf_range(0.10, 0.15))
+
+    # A layered, irregular crown made of many overlapping leaf masses.
+    var crown_center := Vector3(0, trunk_height + 0.15, 0)
+    for cluster_index in range(15):
         var angle := rng.randf_range(0.0, TAU)
-        var ring := rng.randf_range(0.35, 1.75)
+        var ring := rng.randf_range(0.25, 1.35)
         var cluster := MeshInstance3D.new()
         var foliage := SphereMesh.new()
-        foliage.radius = rng.randf_range(0.48, 0.83)
-        foliage.height = rng.randf_range(0.9, 1.55)
-        foliage.radial_segments = 12
-        foliage.rings = 8
+        foliage.radius = rng.randf_range(0.58, 0.88)
+        foliage.height = rng.randf_range(1.05, 1.65)
+        foliage.radial_segments = 10
+        foliage.rings = 6
         cluster.mesh = foliage
-        cluster.position = crown_center + Vector3(cos(angle) * ring, rng.randf_range(-0.65, 1.35), sin(angle) * ring)
-        cluster.scale = Vector3(rng.randf_range(0.85, 1.42), rng.randf_range(0.7, 1.15), rng.randf_range(0.85, 1.35))
-        cluster.rotation = Vector3(rng.randf_range(-0.25, 0.25), angle, rng.randf_range(-0.25, 0.25))
+        cluster.position = crown_center + Vector3(cos(angle) * ring, rng.randf_range(-0.45, 1.15), sin(angle) * ring)
+        cluster.scale = Vector3(rng.randf_range(0.9, 1.35), rng.randf_range(0.75, 1.1), rng.randf_range(0.9, 1.3))
         cluster.material_override = leaf_materials[rng.randi_range(0, leaf_materials.size() - 1)]
         tree.add_child(cluster)
-    for leaf_index in range(34):
+
+    # Smaller brighter leaf clusters break up the silhouette and add depth.
+    for leaf_index in range(10):
         var angle := rng.randf_range(0.0, TAU)
         var leaf := MeshInstance3D.new()
         var leaf_mesh := SphereMesh.new()
-        leaf_mesh.radius = rng.randf_range(0.13, 0.25)
-        leaf_mesh.height = rng.randf_range(0.32, 0.62)
+        leaf_mesh.radius = rng.randf_range(0.18, 0.31)
+        leaf_mesh.height = rng.randf_range(0.28, 0.48)
         leaf_mesh.radial_segments = 8
-        leaf_mesh.rings = 6
+        leaf_mesh.rings = 5
         leaf.mesh = leaf_mesh
-        leaf.position = crown_center + Vector3(cos(angle) * rng.randf_range(0.65, 1.9), rng.randf_range(-0.45, 1.6), sin(angle) * rng.randf_range(0.65, 1.9))
-        leaf.rotation = Vector3(rng.randf_range(-0.65, 0.65), angle, rng.randf_range(-0.65, 0.65))
+        leaf.position = crown_center + Vector3(cos(angle) * rng.randf_range(0.55, 1.55), rng.randf_range(-0.35, 1.4), sin(angle) * rng.randf_range(0.55, 1.55))
+        leaf.rotation = Vector3(rng.randf_range(-0.5, 0.5), angle, rng.randf_range(-0.5, 0.5))
         leaf.material_override = leaf_light_materials[rng.randi_range(0, leaf_light_materials.size() - 1)]
         tree.add_child(leaf)
 
@@ -262,19 +251,31 @@ func _create_branch(parent: Node3D, start: Vector3, direction: Vector3, thicknes
     parent.add_child(branch)
 
 func _create_rock_fields() -> void:
-    for i in range(30):
+    for i in range(68):
         var rock := MeshInstance3D.new()
         var mesh := SphereMesh.new()
-        mesh.radius = rng.randf_range(0.35, 0.85)
-        mesh.height = mesh.radius * 1.5
+        mesh.radius = rng.randf_range(0.32, 1.05)
+        mesh.height = mesh.radius * rng.randf_range(1.05, 1.65)
+        mesh.radial_segments = 9
+        mesh.rings = 6
         rock.mesh = mesh
-        rock.scale = Vector3(rng.randf_range(0.9, 1.7), rng.randf_range(0.65, 1.1), rng.randf_range(0.8, 1.4))
-        rock.position = Vector3(rng.randf_range(-48, 48), 0.28, rng.randf_range(-48, 48))
+        rock.scale = Vector3(rng.randf_range(0.85, 1.75), rng.randf_range(0.55, 1.0), rng.randf_range(0.8, 1.55))
+        rock.rotation = Vector3(rng.randf_range(-0.3, 0.3), rng.randf_range(0, TAU), rng.randf_range(-0.3, 0.3))
+        rock.position = Vector3(rng.randf_range(-48, 48), 0.25, rng.randf_range(-48, 48))
         if rock.position.distance_to(Vector3(0, 0, 4)) < 8.0 or (absf(rock.position.x) < 3.0 and rock.position.z < 7.0 and rock.position.z > -38.0):
-            rock.queue_free()
             continue
-        rock.material_override = stone_material if i % 2 == 0 else dark_stone_material
+        rock.material_override = stone_material if i % 3 != 0 else dark_stone_material
         add_child(rock)
+        for chip_index in range(2):
+            var chip := MeshInstance3D.new()
+            var chip_mesh := SphereMesh.new()
+            chip_mesh.radius = rng.randf_range(0.12, 0.24)
+            chip_mesh.height = chip_mesh.radius * 1.2
+            chip.mesh = chip_mesh
+            chip.scale = Vector3(1.4, 0.7, 1.1)
+            chip.position = rock.position + Vector3(rng.randf_range(-0.8, 0.8), 0.12, rng.randf_range(-0.8, 0.8))
+            chip.material_override = dark_stone_material
+            add_child(chip)
 
 func _create_ancient_shrine() -> void:
     var shrine := Node3D.new()
