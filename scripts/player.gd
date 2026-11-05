@@ -69,7 +69,7 @@ func perform_attack() -> void:
     sphere.radius = 1.55
     var query := PhysicsShapeQueryParameters3D.new()
     query.shape = sphere
-    query.transform = Transform3D(Basis.IDENTITY, global_position + Vector3.UP * 0.95 + (-global_basis.z * 1.05))
+    query.transform = Transform3D(Basis.IDENTITY, global_position + Vector3.UP * 0.95 + (-body_mesh.global_basis.z * 1.05))
     query.exclude = [get_rid()]
     query.collide_with_bodies = true
     query.collide_with_areas = false
