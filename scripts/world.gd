@@ -86,22 +86,30 @@ func _create_environment() -> void:
     world_env.background_mode = Environment.BG_SKY
     world_env.sky = Sky.new()
     var sky_material := ProceduralSkyMaterial.new()
-    sky_material.sky_top_color = Color(0.12, 0.23, 0.42)
-    sky_material.sky_horizon_color = Color(0.62, 0.70, 0.76)
-    sky_material.ground_bottom_color = Color(0.12, 0.16, 0.13)
-    sky_material.ground_horizon_color = Color(0.42, 0.48, 0.40)
+    sky_material.sky_top_color = Color(0.035, 0.095, 0.19)
+    sky_material.sky_horizon_color = Color(0.48, 0.61, 0.66)
+    sky_material.ground_bottom_color = Color(0.035, 0.055, 0.045)
+    sky_material.ground_horizon_color = Color(0.22, 0.31, 0.25)
     world_env.sky.sky_material = sky_material
     world_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    world_env.ambient_light_color = Color(0.63, 0.72, 0.84)
-    world_env.ambient_light_energy = 0.72
+    world_env.ambient_light_color = Color(0.48, 0.60, 0.72)
+    world_env.ambient_light_energy = 0.82
     world_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+    world_env.tonemap_exposure = 1.05
+    world_env.glow_enabled = true
+    world_env.glow_intensity = 0.28
     world_env.fog_enabled = true
-    world_env.fog_light_color = Color(0.55, 0.65, 0.68)
-    world_env.fog_density = 0.006
+    world_env.fog_light_color = Color(0.42, 0.55, 0.58)
+    world_env.fog_density = 0.008
     var node := get_node_or_null("WorldEnvironment") as WorldEnvironment
     if node:
         node.environment = world_env
-
+    var sun := get_node_or_null("DirectionalLight3D") as DirectionalLight3D
+    if sun:
+        sun.light_color = Color(1.0, 0.88, 0.72)
+        sun.light_energy = 1.35
+        sun.shadow_enabled = true
+        sun.directional_shadow_max_distance = 65.0
 func _create_ground() -> void:
     var ground := StaticBody3D.new()
     ground.name = "Ground"
