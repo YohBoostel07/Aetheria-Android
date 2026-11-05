@@ -1,5 +1,9 @@
 extends CharacterBody3D
 
+signal stats_changed
+signal inventory_changed
+signal level_up(new_level: int)
+
 @export var move_speed: float = 5.8
 @export var acceleration: float = 18.0
 @export var jump_velocity: float = 5.2
@@ -13,7 +17,17 @@ var touch_move := Vector2.ZERO
 var camera_yaw := 0.0
 var camera_pitch := -0.28
 var attack_cooldown := 0.0
-var health := 100
+
+var level: int = 1
+var experience: int = 0
+var experience_to_next_level: int = 100
+var health: int = 100
+var max_health: int = 100
+var attack_damage: int = 30
+var defense: int = 0
+var inventory: Dictionary = {}
+var equipped_amulet: bool = false
+
 var is_dead := false
 var respawn_position := Vector3(0, 1.2, 4)
 
@@ -21,6 +35,8 @@ func _ready() -> void:
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     camera_yaw = rotation.y
     respawn_position = global_position
+    stats_changed.emit()
+    inventory_changed.emit()
 
 func _physics_process(delta: float) -> void:
     if is_dead:
@@ -76,20 +92,55 @@ func perform_attack() -> void:
     for hit in get_world_3d().direct_space_state.intersect_shape(query, 12):
         var target := hit.get("collider") as Node
         if target != null and target.is_in_group("enemies") and target.has_method("take_damage"):
-            target.call("take_damage", 30)
+            target.call("take_damage", attack_damage)
 
 func take_damage(amount: int) -> void:
     if is_dead or amount <= 0:
         return
-    health = maxi(0, health - amount)
+    var reduced_damage := maxi(1, amount - defense)
+    health = maxi(0, health - reduced_damage)
+    stats_changed.emit()
     if health == 0:
         is_dead = true
         velocity = Vector3.ZERO
         await get_tree().create_timer(1.2).timeout
         global_position = respawn_position
         velocity = Vector3.ZERO
-        health = 100
+        health = max_health
         is_dead = false
+        stats_changed.emit()
+
+func gain_experience(amount: int) -> void:
+    if amount <= 0:
+        return
+    experience += amount
+    while experience >= experience_to_next_level:
+        experience -= experience_to_next_level
+        _level_up()
+    stats_changed.emit()
+
+func _level_up() -> void:
+    level += 1
+    experience_to_next_level = level * 100
+    max_health += 20
+    attack_damage += 5
+    defense += 2
+    health = max_health
+    level_up.emit(level)
+    stats_changed.emit()
+
+func add_item(item_name: String, amount: int = 1) -> void:
+    if amount <= 0:
+        return
+    inventory[item_name] = int(inventory.get(item_name, 0)) + amount
+    inventory_changed.emit()
+
+func equip_guardian_amulet() -> void:
+    if equipped_amulet:
+        return
+    equipped_amulet = true
+    defense += 3
+    stats_changed.emit()
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
