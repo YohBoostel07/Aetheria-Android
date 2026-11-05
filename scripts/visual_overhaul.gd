@@ -14,6 +14,7 @@ func _ready() -> void:
     _scatter_undergrowth()
     _scatter_mossy_stones()
     _decorate_shrine_approach()
+    call_deferred("_apply_post_fx")
 
 func _make_materials() -> void:
     moss = _mat(Color(0.075, 0.19, 0.075), 0.98)
