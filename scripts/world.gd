@@ -438,15 +438,16 @@ func _refresh_inventory_hud() -> void:
     if player == null or inventory_label == null:
         return
     var lines := PackedStringArray()
-    lines.append("Nível %d  |  EXP %d/%d" % [player.level, player.experience, player.experience_to_next_level])
-    lines.append("ATQ %d  |  DEF %d  |  VIDA %d/%d" % [player.attack_damage, player.defense, player.health, player.max_health])
+    lines.append("Nível %d  |  EXP %d/%d" % [player.get("level"), player.get("experience"), player.get("experience_to_next_level")])
+    lines.append("ATQ %d  |  DEF %d  |  VIDA %d/%d" % [player.get("attack_damage"), player.get("defense"), player.get("health"), player.get("max_health")])
     lines.append("Itens:")
-    if player.inventory.is_empty():
+    var player_inventory: Dictionary = player.get("inventory")
+    if player_inventory.is_empty():
         lines.append("  Inventário vazio")
     else:
-        for item_name in player.inventory.keys():
-            lines.append("  %s x%d" % [item_name, player.inventory[item_name]])
-    lines.append("Amuleto: %s" % ("Equipado" if player.equipped_amulet else "Nenhum"))
+        for item_name in player_inventory.keys():
+            lines.append("  %s x%d" % [item_name, player_inventory[item_name]])
+    lines.append("Amuleto: %s" % ("Equipado" if player.get("equipped_amulet") else "Nenhum"))
     inventory_label.text = "\n".join(lines)
 
 func _create_pickups() -> void:
@@ -473,9 +474,13 @@ func _create_pickup(item_name: String, pickup_position: Vector3, glow_color: Col
         mesh.size = Vector3(0.55, 0.85, 0.55)
         mesh_instance.mesh = mesh
     elif item_name == "Minério antigo":
-        var mesh := DodecahedronMesh.new()
-        mesh.size = 0.58
+        var mesh := SphereMesh.new()
+        mesh.radius = 0.34
+        mesh.height = 0.68
+        mesh.radial_segments = 6
+        mesh.rings = 4
         mesh_instance.mesh = mesh
+        mesh_instance.scale = Vector3(1.0, 0.8, 1.25)
     else:
         var mesh := SphereMesh.new()
         mesh.radius = 0.30
