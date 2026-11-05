@@ -1,0 +1,32 @@
+name: Build Aetheria Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-22.04
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare output
+        run: mkdir -p build
+
+      - name: Export Android debug APK
+        run: godot --headless --verbose --path . --export-debug "Android" build/Aetheria-debug.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetheria-Android-debug
+          path: build/Aetheria-debug.apk
+          if-no-files-found: error
+          retention-days: 14
