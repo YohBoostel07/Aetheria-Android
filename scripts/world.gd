@@ -27,9 +27,6 @@ func _ready() -> void:
     _create_materials()
     _create_environment()
     _create_ground()
-    _create_path()
-    _create_forest()
-    _create_rock_fields()
     _create_ancient_shrine()
     _create_torches()
     _create_quest_hud()
@@ -106,13 +103,24 @@ func _create_ground() -> void:
     var ground := StaticBody3D.new()
     ground.name = "Ground"
     add_child(ground)
+
     var mesh_instance := MeshInstance3D.new()
     var plane := PlaneMesh.new()
     plane.size = Vector2(180, 180)
     mesh_instance.mesh = plane
-    var grass := _material(Color(0.20, 0.36, 0.20), 1.0)
-    mesh_instance.material_override = grass
+
+    # Poly Haven CC0 scanned forest-floor material: albedo, normal and roughness.
+    var forest_floor := StandardMaterial3D.new()
+    forest_floor.albedo_texture = load("res://assets/realistic/materials/forest_floor_albedo.jpg") as Texture2D
+    forest_floor.normal_enabled = true
+    forest_floor.normal_texture = load("res://assets/realistic/materials/forest_floor_normal.jpg") as Texture2D
+    forest_floor.normal_scale = 0.9
+    forest_floor.roughness = 1.0
+    forest_floor.roughness_texture = load("res://assets/realistic/materials/forest_floor_roughness.jpg") as Texture2D
+    forest_floor.uv1_scale = Vector3(28.0, 28.0, 1.0)
+    mesh_instance.material_override = forest_floor
     ground.add_child(mesh_instance)
+
     var collision := CollisionShape3D.new()
     var shape := BoxShape3D.new()
     shape.size = Vector3(180, 0.3, 180)
