@@ -4,7 +4,7 @@ config_version=5
 config/name="Aetheria"
 run/main_scene="res://scenes/world.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
-config/version="0.7.0"
+config/version="0.7.1"
 
 [display]
 window/size/viewport_width=1280
