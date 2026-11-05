@@ -18,6 +18,9 @@ var enemies_defeated := 0
 var quest_complete := false
 var experience := 0
 var shrine_crystal_light: OmniLight3D
+var inventory_label: Label
+var pickup_notice_label: Label
+var pickups: Array[Dictionary] = []
 
 func _ready() -> void:
     rng.seed = 48291
@@ -30,10 +33,13 @@ func _ready() -> void:
     _create_ancient_shrine()
     _create_torches()
     _create_quest_hud()
+    _create_inventory_hud()
+    _create_pickups()
     _spawn_enemies()
     _refresh_quest_hud()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+    _update_pickups(delta)
     if enemies_defeated >= 3 and not quest_complete:
         var player := get_node_or_null("Player") as Node3D
         if player != null:
@@ -388,12 +394,139 @@ func _complete_quest() -> void:
     if quest_complete:
         return
     quest_complete = true
-    experience += 100
+    var player := get_node_or_null("Player")
+    if player != null and player.has_method("gain_experience"):
+        player.call("gain_experience", 100)
     if shrine_crystal_light != null:
         shrine_crystal_light.light_energy = 2.8
         shrine_crystal_light.omni_range = 11.0
         shrine_crystal_light.light_color = Color(0.28, 0.78, 1.0)
     _refresh_quest_hud()
+
+
+func _create_inventory_hud() -> void:
+    var layer := get_node("QuestHUD") as CanvasLayer
+    var panel := ColorRect.new()
+    panel.position = Vector2(965, 28)
+    panel.size = Vector2(285, 170)
+    panel.color = Color(0.025, 0.045, 0.075, 0.82)
+    layer.add_child(panel)
+    var title := Label.new()
+    title.position = Vector2(980, 38)
+    title.size = Vector2(250, 26)
+    title.text = "PERSONAGEM / INVENTÁRIO"
+    title.add_theme_font_size_override("font_size", 17)
+    title.add_theme_color_override("font_color", Color(0.60, 0.83, 1.0))
+    layer.add_child(title)
+    inventory_label = Label.new()
+    inventory_label.position = Vector2(980, 68)
+    inventory_label.size = Vector2(255, 125)
+    inventory_label.add_theme_font_size_override("font_size", 15)
+    inventory_label.add_theme_color_override("font_color", Color(0.92, 0.95, 1.0))
+    layer.add_child(inventory_label)
+    pickup_notice_label = Label.new()
+    pickup_notice_label.position = Vector2(450, 155)
+    pickup_notice_label.size = Vector2(380, 32)
+    pickup_notice_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    pickup_notice_label.add_theme_font_size_override("font_size", 20)
+    pickup_notice_label.add_theme_color_override("font_color", Color(0.55, 0.90, 1.0))
+    layer.add_child(pickup_notice_label)
+    _refresh_inventory_hud()
+
+func _refresh_inventory_hud() -> void:
+    var player := get_node_or_null("Player")
+    if player == null or inventory_label == null:
+        return
+    var lines := PackedStringArray()
+    lines.append("Nível %d  |  EXP %d/%d" % [player.level, player.experience, player.experience_to_next_level])
+    lines.append("ATQ %d  |  DEF %d  |  VIDA %d/%d" % [player.attack_damage, player.defense, player.health, player.max_health])
+    lines.append("Itens:")
+    if player.inventory.is_empty():
+        lines.append("  Inventário vazio")
+    else:
+        for item_name in player.inventory.keys():
+            lines.append("  %s x%d" % [item_name, player.inventory[item_name]])
+    lines.append("Amuleto: %s" % ("Equipado" if player.equipped_amulet else "Nenhum"))
+    inventory_label.text = "\n".join(lines)
+
+func _create_pickups() -> void:
+    _create_pickup("Erva medicinal", Vector3(2.0, 0.65, -8.0), Color(0.25, 0.88, 0.38), false)
+    _create_pickup("Cristal azul", Vector3(-2.0, 0.65, -14.0), Color(0.12, 0.62, 1.0), false)
+    _create_pickup("Minério antigo", Vector3(4.0, 0.65, -22.0), Color(0.72, 0.55, 0.34), false)
+    _create_pickup("Erva medicinal", Vector3(-3.0, 0.65, -29.0), Color(0.25, 0.88, 0.38), false)
+    _create_pickup("Amuleto do Guardião", Vector3(0.0, 0.9, -33.0), Color(0.95, 0.72, 0.20), true)
+
+func _create_pickup(item_name: String, pickup_position: Vector3, glow_color: Color, is_equipment: bool) -> void:
+    var pickup := Node3D.new()
+    pickup.name = "Pickup_" + item_name.replace(" ", "")
+    pickup.position = pickup_position
+    add_child(pickup)
+    var mesh_instance := MeshInstance3D.new()
+    if is_equipment:
+        var mesh := TorusMesh.new()
+        mesh.inner_radius = 0.18
+        mesh.outer_radius = 0.32
+        mesh_instance.mesh = mesh
+        mesh_instance.rotation.x = PI * 0.5
+    elif item_name == "Cristal azul":
+        var mesh := PrismMesh.new()
+        mesh.size = Vector3(0.55, 0.85, 0.55)
+        mesh_instance.mesh = mesh
+    elif item_name == "Minério antigo":
+        var mesh := DodecahedronMesh.new()
+        mesh.size = 0.58
+        mesh_instance.mesh = mesh
+    else:
+        var mesh := SphereMesh.new()
+        mesh.radius = 0.30
+        mesh.height = 0.58
+        mesh_instance.mesh = mesh
+    var material := StandardMaterial3D.new()
+    material.albedo_color = glow_color
+    material.metallic = 0.35
+    material.roughness = 0.28
+    material.emission_enabled = true
+    material.emission = glow_color
+    material.emission_energy_multiplier = 0.65
+    mesh_instance.material_override = material
+    pickup.add_child(mesh_instance)
+    var light := OmniLight3D.new()
+    light.light_color = glow_color
+    light.light_energy = 0.45
+    light.omni_range = 3.0
+    pickup.add_child(light)
+    var label := Label3D.new()
+    label.text = item_name
+    label.position.y = 0.75
+    label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    label.font_size = 24
+    label.outline_size = 5
+    label.modulate = Color(0.92, 0.97, 1.0)
+    pickup.add_child(label)
+    pickups.append({"node": pickup, "item": item_name, "equipment": is_equipment, "phase": rng.randf_range(0.0, TAU)})
+
+func _update_pickups(delta: float) -> void:
+    var player := get_node_or_null("Player") as Node3D
+    if player == null:
+        return
+    for index in range(pickups.size() - 1, -1, -1):
+        var pickup_data: Dictionary = pickups[index]
+        var pickup := pickup_data["node"] as Node3D
+        if not is_instance_valid(pickup):
+            pickups.remove_at(index)
+            continue
+        pickup.rotate_y(delta * 1.25)
+        pickup.position.y = 0.65 + sin(Time.get_ticks_msec() * 0.002 + float(pickup_data["phase"])) * 0.12
+        if player.global_position.distance_to(pickup.global_position) <= 1.8:
+            var item_name: String = pickup_data["item"]
+            player.call("add_item", item_name, 1)
+            if bool(pickup_data["equipment"]):
+                player.call("equip_guardian_amulet")
+            pickup_notice_label.text = "Coletado: " + item_name
+            pickup.queue_free()
+            pickups.remove_at(index)
+            _refresh_inventory_hud()
+    _refresh_inventory_hud()
 
 func _box(parent: Node3D, part_name: String, part_position: Vector3, dimensions: Vector3, material: Material) -> void:
     var part := MeshInstance3D.new()
