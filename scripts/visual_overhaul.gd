@@ -134,3 +134,21 @@ func _decorate_shrine_approach() -> void:
             rune_stone.position = Vector3(side * 5.4, 0.14, z)
             rune_stone.material_override = rock_dark
             add_child(rune_stone)
+
+func _apply_post_fx() -> void:
+    var world := get_parent()
+    if world == null:
+        return
+    var environment_node := world.get_node_or_null("WorldEnvironment") as WorldEnvironment
+    if environment_node != null and environment_node.environment != null:
+        environment_node.environment.glow_enabled = true
+        environment_node.environment.glow_intensity = 0.32
+        environment_node.environment.glow_strength = 0.78
+        environment_node.environment.fog_enabled = true
+        environment_node.environment.fog_light_color = Color(0.39, 0.52, 0.55)
+        environment_node.environment.fog_density = 0.008
+    var sun := world.get_node_or_null("DirectionalLight3D") as DirectionalLight3D
+    if sun != null:
+        sun.light_color = Color(1.0, 0.86, 0.70)
+        sun.light_energy = 1.3
+        sun.directional_shadow_max_distance = 58.0
