@@ -14,12 +14,17 @@ var camera_yaw := 0.0
 var camera_pitch := -0.28
 var attack_cooldown := 0.0
 var health := 100
+var is_dead := false
+var respawn_position := Vector3(0, 1.2, 4)
 
 func _ready() -> void:
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     camera_yaw = rotation.y
+    respawn_position = global_position
 
 func _physics_process(delta: float) -> void:
+    if is_dead:
+        return
     attack_cooldown = maxf(0.0, attack_cooldown - delta)
     var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
     if touch_move.length() > 0.12:
@@ -56,10 +61,35 @@ func rotate_camera(delta_x: float, delta_y: float) -> void:
     spring_arm.rotation = Vector3(camera_pitch, camera_yaw, 0)
 
 func perform_attack() -> void:
-    if attack_cooldown > 0.0:
+    if is_dead or attack_cooldown > 0.0:
         return
     attack_cooldown = 0.55
     character_visual.play_attack()
+    var sphere := SphereShape3D.new()
+    sphere.radius = 1.55
+    var query := PhysicsShapeQueryParameters3D.new()
+    query.shape = sphere
+    query.transform = Transform3D(Basis.IDENTITY, global_position + Vector3.UP * 0.95 + (-global_basis.z * 1.05))
+    query.exclude = [get_rid()]
+    query.collide_with_bodies = true
+    query.collide_with_areas = false
+    for hit in get_world_3d().direct_space_state.intersect_shape(query, 12):
+        var target := hit.get("collider") as Node
+        if target != null and target.is_in_group("enemies") and target.has_method("take_damage"):
+            target.take_damage(30)
+
+func take_damage(amount: int) -> void:
+    if is_dead or amount <= 0:
+        return
+    health = maxi(0, health - amount)
+    if health == 0:
+        is_dead = true
+        velocity = Vector3.ZERO
+        await get_tree().create_timer(1.2).timeout
+        global_position = respawn_position
+        velocity = Vector3.ZERO
+        health = 100
+        is_dead = false
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
