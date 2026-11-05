@@ -1,9 +1,12 @@
 extends Node3D
 
+const ENEMY_SCRIPT = preload("res://scripts/enemy.gd")
+
 func _ready() -> void:
     _create_environment()
     _create_ground()
     _create_landmarks()
+    _spawn_enemies()
 
 func _create_environment() -> void:
     var world_env := Environment.new()
@@ -69,3 +72,18 @@ func _create_landmarks() -> void:
         leaves.roughness = 1.0
         crown.material_override = leaves
         tree.add_child(crown)
+
+func _spawn_enemies() -> void:
+    var player := get_node("Player") as CharacterBody3D
+    var spawn_points := [
+        Vector3(5.5, 0, -2.0),
+        Vector3(-6.0, 0, -5.0),
+        Vector3(9.0, 0, -10.0)
+    ]
+    for i in range(spawn_points.size()):
+        var enemy := CharacterBody3D.new()
+        enemy.name = "Sombrio_%d" % (i + 1)
+        enemy.set_script(ENEMY_SCRIPT)
+        enemy.set("player_path", NodePath("../Player"))
+        enemy.position = spawn_points[i]
+        add_child(enemy)
