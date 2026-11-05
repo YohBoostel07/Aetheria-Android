@@ -2,9 +2,11 @@
 
 A stylized 3D open-world action RPG for Android, built with Godot 4.4.1.
 
-## Current version: 0.4.0 — Vale do Primeiro Santuário
+## Current version: 0.5.0 — O Segredo do Santuário
 
-The first exploration-region milestone expands the combat prototype into a recognizable fantasy location: a forest trail, a ruined sanctuary, glowing crystals, torchlight, and a group of shadow creatures guarding the approach.
+This milestone adds the first tracked quest: defeat the three Sombrio guarding the forest trail, approach the ancient shrine crystal, complete the objective and earn 100 EXP. The quest HUD updates as enemies are defeated and the central crystal glows more brightly when the quest is complete.
+
+The forest has also received a procedural tree-art upgrade. Every generated tree now has a more varied tapered trunk, visible branching, layered foliage clusters, and smaller leaf groups in multiple natural green tones.
 
 ## Current playable foundation
 
@@ -17,10 +19,12 @@ The first exploration-region milestone expands the combat prototype into a recog
 - Player defeat and respawn loop.
 - First explorable region: Vale do Primeiro Santuário.
 - Procedurally arranged forest, stone trail, rock fields and ground details.
+- Improved procedural trees with branches and layered leaves.
 - Ancient stone shrine with a central glowing crystal and smaller crystal lights.
 - Torch-lit approach to the shrine.
-- Enemy placements now guard the trail and sanctuary rather than surrounding the starting point.
-- GitHub Actions workflow to export an Android debug APK.
+- Quest: defeat three Sombrio, then reach the central crystal.
+- Quest progress HUD and +100 EXP completion reward.
+- Android debug APK exported through GitHub Actions.
 
 ## Requirements
 
