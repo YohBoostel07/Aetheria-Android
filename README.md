@@ -41,3 +41,6 @@ Exploration now includes collectible medicinal herbs, blue crystals, ancient ore
 Pushes to the default branch trigger the Android debug APK workflow. The APK is published as a GitHub Actions artifact.
 
 This is an original fantasy world and IP. It takes broad inspiration from open-world adventure design without using protected characters, names, maps, music, or art.
+
+
+Visual overhaul branch: Android build validation is enabled for this branch.
