@@ -105,12 +105,14 @@ jobs:
           test -s assets/realistic/characters/horror_monster_light.glb
           test "$(wc -c < assets/realistic/characters/horror_monster_light.glb)" -gt 1000000
           head -c 4 assets/realistic/characters/horror_monster_light.glb | grep -q glTF
+          blender --background --python-expr "import sys; sys.path.append('/usr/lib/python3/dist-packages'); import numpy; print('BLENDER_NUMPY_OK', numpy.__version__)"
           blender --background --python tools/rig_sombrio.py -- assets/realistic/characters/horror_monster_light.glb assets/realistic/characters/horror_monster_rigged.glb
           test -s assets/realistic/characters/horror_monster_rigged.glb
           wget -q --show-progress https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb -O assets/realistic/characters/man-base-character-rigged.glb
           test -s assets/realistic/characters/man-base-character-rigged.glb
-          blender --background --python tools/prepare_hero.py -- assets/realistic/characters/man-base-character-rigged.glb assets/realistic/characters/hero_animated.glb || cp assets/realistic/characters/man-base-character-rigged.glb assets/realistic/characters/hero_animated.glb
-          test -s assets/realistic/characters/hero_animated.glb
+          blender --background --python tools/prepare_hero.py -- assets/realistic/characters/man-base-character-rigged.glb assets/realistic/characters/hero_animated.glb
+          test "$(wc -c < assets/realistic/characters/hero_animated.glb)" -gt 1000000
+          head -c 4 assets/realistic/characters/hero_animated.glb | grep -q glTF
           wget -q --show-progress https://grab3d.com/dl/fantasy-sword/fantasy-sword-light.glb -O assets/realistic/weapons/fantasy-sword-light.glb
           test -s assets/realistic/weapons/fantasy-sword-light.glb
           wget -q --show-progress https://files.innerscene.com/library/arch-bridge-stone-719c9452/2db4fb9cae8f0ff2672d/arch-bridge-stone.glb -O assets/realistic/architecture/arch_bridge_stone.glb
@@ -125,6 +127,10 @@ jobs:
           test -s assets/realistic/architecture/ruin_wall_corner.glb
           wget -q --show-progress https://grab3d.com/dl/ruin-wall-segment/ruin-wall-segment.glb -O assets/realistic/architecture/ruin_wall_segment.glb
           test -s assets/realistic/architecture/ruin_wall_segment.glb
+          for model in assets/realistic/characters/horror_monster_rigged.glb assets/realistic/characters/hero_animated.glb assets/realistic/weapons/fantasy-sword-light.glb assets/realistic/architecture/*.glb assets/realistic/nature/*.glb; do
+            test -s "$model"
+            head -c 4 "$model" | grep -q glTF
+          done
           wget -q --show-progress https://files.innerscene.com/library/rocky-outcrop-9f14ef52/f6e60f13403504661957/rocky-outcrop.glb -O assets/realistic/nature/rocky_outcrop.glb
           test -s assets/realistic/nature/rocky_outcrop.glb
           wget -q --show-progress https://files.innerscene.com/library/dry-stone-wall-section-f63adad9/8cd0e765f59a9bd3890f/dry-stone-wall-section.glb -O assets/realistic/nature/dry_stone_wall_section.glb
