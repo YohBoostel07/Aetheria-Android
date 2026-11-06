@@ -547,6 +547,13 @@ func animate_character(delta: float, horizontal_speed: float, airborne: bool) ->
     walk_phase += delta * (5.0 + horizontal_speed * 1.7)
     if animation_player == null:
         return
+    if attack_time > 0.0:
+        var attack_clip := _animation_with("attack")
+        if attack_clip != "":
+            if current_animation != attack_clip:
+                current_animation = attack_clip
+                animation_player.play(attack_clip, 0.06)
+            return
     var target := ""
     if airborne:
         target = _animation_with("jump")
