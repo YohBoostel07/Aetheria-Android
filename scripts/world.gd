@@ -113,6 +113,15 @@ func _create_environment() -> void:
     world_env.adjustment_brightness = 1.02
     world_env.adjustment_contrast = 1.08
     world_env.adjustment_saturation = 1.08
+    var sun := get_node_or_null("DirectionalLight3D") as DirectionalLight3D
+    if sun:
+        sun.light_color = Color(0.82, 0.88, 1.0)
+        sun.light_energy = 1.12
+        sun.light_angular_distance = 0.32
+        sun.directional_shadow_max_distance = 68.0
+        sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+        sun.directional_shadow_blend_splits = true
+
     var node := get_node_or_null("WorldEnvironment") as WorldEnvironment
     if node:
         node.environment = world_env
