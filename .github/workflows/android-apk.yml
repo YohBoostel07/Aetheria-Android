@@ -24,7 +24,7 @@ jobs:
       - name: Install Java and Android command-line tools
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends openjdk-17-jdk-headless unzip wget
+          apt-get install -y --no-install-recommends openjdk-17-jdk-headless unzip wget blender
           mkdir -p "$ANDROID_HOME/cmdline-tools"
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/android-tools.zip
           mkdir -p /tmp/android-tools
@@ -79,6 +79,8 @@ jobs:
           test -s assets/realistic/characters/horror_monster_light.glb
           test "$(wc -c < assets/realistic/characters/horror_monster_light.glb)" -gt 1000000
           head -c 4 assets/realistic/characters/horror_monster_light.glb | grep -q glTF
+          blender --background --python tools/rig_sombrio.py -- assets/realistic/characters/horror_monster_light.glb assets/realistic/characters/horror_monster_rigged.glb
+          test -s assets/realistic/characters/horror_monster_rigged.glb
 
       - name: Validate project
         run: godot --headless --editor --path . --quit
