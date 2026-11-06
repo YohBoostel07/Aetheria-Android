@@ -3,13 +3,15 @@ extends CharacterBody3D
 signal defeated
 
 @export var max_health: int = 60
-@export var move_speed: float = 2.4
+@export var move_speed: float = 3.0
 @export var attack_damage: int = 12
 @export var attack_range: float = 1.55
 @export var attack_interval: float = 1.25
 @export var player_path: NodePath
 
 const SOMBRIO_MODEL_PATH := "res://assets/realistic/characters/horror_monster_light.glb"
+# The source GLB faces +Z; Godot's CharacterBody3D forward convention is -Z.
+const MODEL_FORWARD_CORRECTION := PI
 
 var health: int
 var attack_timer := 0.0
@@ -20,7 +22,7 @@ var model_materials: Array[BaseMaterial3D] = []
 var health_label: Label3D
 var walk_phase := 0.0
 var is_defeated := false
-var original_material_colors: Array[Color] = []
+var is_walking := false
 
 func _ready() -> void:
     add_to_group("enemies")
@@ -31,43 +33,66 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
     if is_defeated:
         return
+
     if player == null or not is_instance_valid(player) or int(player.get("health")) <= 0:
-        velocity.x = move_toward(velocity.x, 0.0, 8.0 * delta)
-        velocity.z = move_toward(velocity.z, 0.0, 8.0 * delta)
+        velocity.x = move_toward(velocity.x, 0.0, 12.0 * delta)
+        velocity.z = move_toward(velocity.z, 0.0, 12.0 * delta)
+        is_walking = false
+        _update_locomotion(delta)
+        if not is_on_floor():
+            velocity.y -= 9.8 * delta
+        else:
+            velocity.y = 0.0
         move_and_slide()
         return
+
     attack_timer = maxf(0.0, attack_timer - delta)
     hit_flash = maxf(0.0, hit_flash - delta)
     _update_hit_flash()
+
     var to_player := player.global_position - global_position
     to_player.y = 0.0
     var distance := to_player.length()
+
     if distance > attack_range:
         var direction := to_player.normalized()
-        velocity.x = move_toward(velocity.x, direction.x * move_speed, 9.0 * delta)
-        velocity.z = move_toward(velocity.z, direction.z * move_speed, 9.0 * delta)
-        rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), 8.0 * delta)
+        velocity.x = move_toward(velocity.x, direction.x * move_speed, 14.0 * delta)
+        velocity.z = move_toward(velocity.z, direction.z * move_speed, 14.0 * delta)
+        rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), 12.0 * delta)
+        is_walking = Vector2(velocity.x, velocity.z).length() > 0.18
     else:
-        velocity.x = move_toward(velocity.x, 0.0, 12.0 * delta)
-        velocity.z = move_toward(velocity.z, 0.0, 12.0 * delta)
+        velocity.x = move_toward(velocity.x, 0.0, 16.0 * delta)
+        velocity.z = move_toward(velocity.z, 0.0, 16.0 * delta)
+        is_walking = false
         if attack_timer <= 0.0:
             attack_timer = attack_interval
             player.call("take_damage", attack_damage)
+
     if not is_on_floor():
         velocity.y -= 9.8 * delta
     else:
         velocity.y = 0.0
+
     move_and_slide()
-    walk_phase += delta * (5.0 if distance > attack_range else 2.0)
-    if model_root != null:
-        # The imported sculpt remains intact; subtle whole-body motion avoids
-        # deforming or rebuilding the high-detail mesh from primitive parts.
-        model_root.position.y = 0.03 + absf(sin(walk_phase)) * 0.045
-        model_root.rotation.z = sin(walk_phase * 0.5) * 0.018
+    _update_locomotion(delta)
+
+func _update_locomotion(delta: float) -> void:
+    if model_root == null:
+        return
+
+    if is_walking:
+        walk_phase += delta * 8.0
+        # Keep the feet planted: no vertical bobbing. This is only a restrained
+        # torso weight shift until the creature receives a proper skeletal rig.
+        model_root.rotation.x = lerpf(model_root.rotation.x, -0.045, 7.0 * delta)
+        model_root.rotation.z = lerpf(model_root.rotation.z, sin(walk_phase) * 0.035, 9.0 * delta)
+    else:
+        model_root.rotation.x = lerpf(model_root.rotation.x, 0.0, 8.0 * delta)
+        model_root.rotation.z = lerpf(model_root.rotation.z, 0.0, 8.0 * delta)
+    model_root.position.y = 0.0
 
 func _update_hit_flash() -> void:
-    for i in range(model_materials.size()):
-        var material := model_materials[i]
+    for material in model_materials:
         if material == null:
             continue
         if hit_flash > 0.0:
@@ -102,15 +127,21 @@ func _build_creature() -> void:
     if packed == null:
         push_error("Modelo real do Sombrio não encontrado: " + SOMBRIO_MODEL_PATH)
         return
+
     model_root = Node3D.new()
     model_root.name = "SombrioHighDetail"
+    model_root.rotation.y = MODEL_FORWARD_CORRECTION
     add_child(model_root)
-    var imported := packed.instantiate()
+
+    var imported := packed.instantiate() as Node3D
+    if imported == null:
+        push_error("O GLB do Sombrio não instanciou um Node3D.")
+        return
     model_root.add_child(imported)
-    # Source asset is authored at 2.2 m tall; preserve its scanned proportions.
     imported.position = Vector3.ZERO
     imported.scale = Vector3.ONE * 0.96
     _collect_model_materials(imported)
+
     health_label = Label3D.new()
     health_label.text = "SOMBRIO  %d/%d" % [health, max_health]
     health_label.position = Vector3(0, 2.55, 0)
