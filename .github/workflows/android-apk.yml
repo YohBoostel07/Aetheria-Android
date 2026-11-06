@@ -77,7 +77,8 @@ jobs:
           mkdir -p assets/realistic/characters
           wget -q --show-progress https://grab3d.com/dl/horror-monster/horror-monster-light.glb -O assets/realistic/characters/horror_monster_light.glb
           test -s assets/realistic/characters/horror_monster_light.glb
-          file assets/realistic/characters/horror_monster_light.glb
+          test "$(wc -c < assets/realistic/characters/horror_monster_light.glb)" -gt 1000000
+          head -c 4 assets/realistic/characters/horror_monster_light.glb | grep -q glTF
 
       - name: Validate project
         run: godot --headless --editor --path . --quit
