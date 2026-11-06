@@ -530,6 +530,18 @@ func _attach_sword() -> void:
 
     sword_sparks = CPUParticles3D.new()
     sword_sparks.name = "BlueSwordSlashSparks"
+    var spark_mesh := QuadMesh.new()
+    spark_mesh.size = Vector2(0.055, 0.055)
+    var spark_material := StandardMaterial3D.new()
+    spark_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    spark_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    spark_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    spark_material.albedo_color = Color(0.16, 0.52, 1.0, 0.9)
+    spark_material.emission_enabled = true
+    spark_material.emission = Color(0.06, 0.28, 1.0)
+    spark_material.emission_energy_multiplier = 2.0
+    spark_mesh.material = spark_material
+    sword_sparks.mesh = spark_mesh
     sword_sparks.amount = 18
     sword_sparks.lifetime = 0.32
     sword_sparks.one_shot = true
