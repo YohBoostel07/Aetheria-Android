@@ -27,21 +27,29 @@ def find_bone(*terms):
             return bone.name
     return None
 
+def find_alias(aliases, excluded=()):
+    for bone in armature.data.bones:
+        name = norm(bone.name)
+        if any(all(term in name for term in alias) for alias in aliases) and not any(term in name for term in excluded):
+            return bone.name
+    return None
+
 bones = {
     "hips": find_bone("hips"),
-    "spine": find_bone("spine"),
-    "chest": find_bone("chest") or find_bone("spine2"),
+    "spine": find_bone("spine02") or find_bone("spine"),
+    "chest": find_bone("spine03") or find_bone("chest") or find_bone("spine01"),
     "head": find_bone("head"),
-    "upper_arm_r": find_bone("upperarm", "r") or find_bone("right", "upperarm"),
-    "lower_arm_r": find_bone("lowerarm", "r") or find_bone("right", "lowerarm"),
-    "upper_arm_l": find_bone("upperarm", "l") or find_bone("left", "upperarm"),
-    "lower_arm_l": find_bone("lowerarm", "l") or find_bone("left", "lowerarm"),
-    "upper_leg_r": find_bone("upperleg", "r") or find_bone("right", "upperleg"),
-    "lower_leg_r": find_bone("lowerleg", "r") or find_bone("right", "lowerleg"),
-    "upper_leg_l": find_bone("upperleg", "l") or find_bone("left", "upperleg"),
-    "lower_leg_l": find_bone("lowerleg", "l") or find_bone("left", "lowerleg"),
+    "upper_arm_r": find_alias([("upperarm", "r"), ("rightarm",), ("armr",)], ("forearm", "lower")),
+    "lower_arm_r": find_alias([("lowerarm", "r"), ("forearm", "r"), ("rightforearm",), ("forearmr",)]),
+    "upper_arm_l": find_alias([("upperarm", "l"), ("leftarm",), ("arml",)], ("forearm", "lower")),
+    "lower_arm_l": find_alias([("lowerarm", "l"), ("forearm", "l"), ("leftforearm",), ("forearml",)]),
+    "upper_leg_r": find_alias([("upperleg", "r"), ("upleg", "r"), ("rightupleg",), ("thigh", "r")]),
+    "lower_leg_r": find_alias([("lowerleg", "r"), ("rightleg",), ("calf", "r")], ("upper", "thigh")),
+    "upper_leg_l": find_alias([("upperleg", "l"), ("upleg", "l"), ("leftupleg",), ("thigh", "l")]),
+    "lower_leg_l": find_alias([("lowerleg", "l"), ("leftleg",), ("calf", "l")], ("upper", "thigh")),
 }
 print("HERO_RIG_BONES", bones)
+print("HERO_ALL_BONE_NAMES", [bone.name for bone in armature.data.bones])
 
 # Build fitted dark fabric leg armor on the actual rig, covering the base mesh shorts.
 cloth = bpy.data.materials.new("Hero Midnight Cloth PBR")
