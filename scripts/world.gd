@@ -297,19 +297,17 @@ func _create_ancient_shrine() -> void:
     shrine.position = Vector3(0, 0, -35)
     add_child(shrine)
 
-    # Textured modular ruin assets replace the former cube-built temple.
-    _add_architecture_asset(shrine, "res://assets/realistic/architecture/roman_ruins.glb", Vector3.ZERO, 0.92, 0.0)
-    _add_architecture_asset(shrine, "res://assets/realistic/architecture/ruin_archway.glb", Vector3(0.0, 0.0, -2.9), 0.92, 0.0)
-    _add_architecture_asset(shrine, "res://assets/realistic/architecture/broken_column_stump.glb", Vector3(-4.3, 0.0, -0.6), 1.05, 0.35)
-    _add_architecture_asset(shrine, "res://assets/realistic/architecture/broken_column_stump.glb", Vector3(4.1, 0.0, -1.3), 0.88, -0.45)
-    _add_architecture_asset(shrine, "res://assets/realistic/architecture/ruin_wall_corner.glb", Vector3(-4.9, 0.0, -3.6), 0.9, 0.7)
-    _add_architecture_asset(shrine, "res://assets/realistic/architecture/ruin_wall_segment.glb", Vector3(4.6, 0.0, -4.0), 0.95, -0.3)
+    # Weathered real-scale masonry and photogrammetry rock replace the stylized ruin kit.
+    for side in [-1.0, 1.0]:
+        for depth in [-2.0, 0.35, 2.7]:
+            _add_architecture_asset(shrine, "res://assets/realistic/nature/dry_stone_wall_section.glb", Vector3(side * 4.6, 0.0, depth), 1.35, PI * 0.5)
+        _add_architecture_asset(shrine, "res://assets/realistic/nature/rocky_outcrop.glb", Vector3(side * 6.8, 0.0, -2.2), 0.42, side * 0.35)
 
     var altar := Node3D.new()
     altar.name = "CrystalAltar"
     altar.position = Vector3(0.0, 0.0, -0.35)
     shrine.add_child(altar)
-    _box(altar, "Altar plinth", Vector3(0, 0.42, 0), Vector3(2.35, 0.84, 1.65), dark_stone_material)
+    _box(altar, "Weathered altar base", Vector3(0, 0.42, 0), Vector3(2.35, 0.84, 1.65), dark_stone_material)
     _box(altar, "Altar capstone", Vector3(0, 0.88, 0), Vector3(2.75, 0.16, 1.92), stone_material)
     _create_crystal(altar, Vector3(0, 1.65, 0), 1.0)
     _create_crystal(shrine, Vector3(-4.5, 0.95, 0.2), 0.55)
@@ -317,7 +315,7 @@ func _create_ancient_shrine() -> void:
 
     var title := Label3D.new()
     title.text = "SANTUÁRIO ANTIGO"
-    title.position = Vector3(0, 5.1, -2.4)
+    title.position = Vector3(0, 4.4, -2.4)
     title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
     title.font_size = 40
     title.outline_size = 8
