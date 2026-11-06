@@ -524,6 +524,7 @@ func _attach_sword() -> void:
     sword_root.position = Vector3(0.0, 0.0, 0.0)
     attachment.add_child(sword_root)
     sword_root.add_child(sword)
+    _polish_sword_materials(sword)
     sword.position = Vector3(0.0, 0.42, 0.0)
     sword_rest_rotation = sword_root.rotation
 
@@ -550,6 +551,29 @@ func _attach_sword() -> void:
     blade_light.omni_range = 2.0
     blade_light.position = Vector3(0.0, 0.22, 0.0)
     sword_root.add_child(blade_light)
+
+func _polish_sword_materials(node: Node) -> void:
+    if node is MeshInstance3D:
+        var mesh_instance := node as MeshInstance3D
+        if mesh_instance.mesh != null:
+            for surface in range(mesh_instance.mesh.get_surface_count()):
+                var source := mesh_instance.get_active_material(surface)
+                if source is BaseMaterial3D:
+                    var material := (source as BaseMaterial3D).duplicate() as BaseMaterial3D
+                    var label := (material.resource_name + " " + mesh_instance.name).to_lower()
+                    if "blade" in label or "metal" in label or "steel" in label or "sword" in label:
+                        material.metallic = 0.92
+                        material.roughness = 0.19
+                        material.metallic_specular = 0.82
+                        material.emission_enabled = true
+                        material.emission = Color(0.015, 0.075, 0.22)
+                        material.emission_energy_multiplier = 0.22
+                    elif "grip" in label or "handle" in label or "leather" in label:
+                        material.metallic = 0.08
+                        material.roughness = 0.76
+                    mesh_instance.set_surface_override_material(surface, material)
+    for child in node.get_children():
+        _polish_sword_materials(child)
 
 func animate_character(delta: float, horizontal_speed: float, airborne: bool) -> void:
     walk_phase += delta * (5.0 + horizontal_speed * 1.7)
