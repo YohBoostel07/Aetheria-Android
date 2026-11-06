@@ -40,14 +40,14 @@ bones = {
     "spine": find_bone("spine02") or find_bone("spine"),
     "chest": find_bone("spine03") or find_bone("chest") or find_bone("spine01"),
     "head": find_bone("head"),
-    "upper_arm_r": find_alias([("upperarm", "r"), ("rightarm",), ("armr",)], ("forearm", "lower")),
-    "lower_arm_r": find_alias([("lowerarm", "r"), ("forearm", "r"), ("rightforearm",), ("forearmr",)]),
-    "upper_arm_l": find_alias([("upperarm", "l"), ("leftarm",), ("arml",)], ("forearm", "lower")),
-    "lower_arm_l": find_alias([("lowerarm", "l"), ("forearm", "l"), ("leftforearm",), ("forearml",)]),
-    "upper_leg_r": find_alias([("upperleg", "r"), ("upleg", "r"), ("rightupleg",), ("thigh", "r")]),
-    "lower_leg_r": find_alias([("lowerleg", "r"), ("rightleg",), ("calf", "r")], ("upper", "thigh")),
-    "upper_leg_l": find_alias([("upperleg", "l"), ("upleg", "l"), ("leftupleg",), ("thigh", "l")]),
-    "lower_leg_l": find_alias([("lowerleg", "l"), ("leftleg",), ("calf", "l")], ("upper", "thigh")),
+    "upper_arm_r": find_alias([("rightarm",), ("upperarmr",), ("armr",)], ("forearm", "lower")),
+    "lower_arm_r": find_alias([("rightforearm",), ("lowerarmr",), ("forearmr",)]),
+    "upper_arm_l": find_alias([("leftarm",), ("upperarml",), ("arml",)], ("forearm", "lower")),
+    "lower_arm_l": find_alias([("leftforearm",), ("lowerarml",), ("forearml",)]),
+    "upper_leg_r": find_alias([("rightupleg",), ("upperlegr",), ("uplegr",), ("thighr",)]),
+    "lower_leg_r": find_alias([("rightleg",), ("lowerlegr",), ("calfr",)], ("upper", "thigh")),
+    "upper_leg_l": find_alias([("leftupleg",), ("upperlegl",), ("uplegl",), ("thighl",)]),
+    "lower_leg_l": find_alias([("leftleg",), ("lowerlegl",), ("calfl",)], ("upper", "thigh")),
 }
 print("HERO_RIG_BONES", bones)
 print("HERO_ALL_BONE_NAMES", [bone.name for bone in armature.data.bones])
