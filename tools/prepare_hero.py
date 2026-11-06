@@ -62,6 +62,11 @@ for mesh_object in meshes:
                     image_names.append(node.image.name)
         slot_report.append((material.name if material else "None", image_names))
     print("HERO_MESH_MATERIALS", mesh_object.name, slot_report)
+    if mesh_object.data.vertices:
+        xs = [vertex.co.x for vertex in mesh_object.data.vertices]
+        ys = [vertex.co.y for vertex in mesh_object.data.vertices]
+        zs = [vertex.co.z for vertex in mesh_object.data.vertices]
+        print("HERO_MESH_BOUNDS", mesh_object.name, (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs)))
 
 # Build fitted dark fabric leg armor on the actual rig, covering the base mesh shorts.
 cloth = bpy.data.materials.new("Hero Midnight Cloth PBR")
