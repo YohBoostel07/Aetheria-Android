@@ -136,11 +136,23 @@ jobs:
           wget -q --show-progress https://files.innerscene.com/library/dry-stone-wall-section-f63adad9/8cd0e765f59a9bd3890f/dry-stone-wall-section.glb -O assets/realistic/nature/dry_stone_wall_section.glb
           test -s assets/realistic/nature/dry_stone_wall_section.glb
 
-      - name: Validate project
-        run: godot --headless --editor --path . --quit
+      - name: Validate project and imported 3D assets
+        run: |
+          set -o pipefail
+          godot --headless --editor --path . --quit 2>&1 | tee /tmp/aetheria-import.log
+          if grep -E "ERROR:|SCRIPT ERROR:" /tmp/aetheria-import.log; then
+            echo "Godot reported an import or script error."
+            exit 1
+          fi
 
       - name: Runtime smoke test for protagonist, Sombrio and world
-        run: godot --headless --path . --quit-after 90
+        run: |
+          set -o pipefail
+          godot --headless --path . --quit-after 90 2>&1 | tee /tmp/aetheria-smoke.log
+          if grep -E "ERROR:|SCRIPT ERROR:" /tmp/aetheria-smoke.log; then
+            echo "Gameplay smoke test reported an error."
+            exit 1
+          fi
 
       - name: Export Android debug APK
         run: |
