@@ -301,7 +301,7 @@ func _create_ancient_shrine() -> void:
     for side in [-1.0, 1.0]:
         for depth in [-2.0, 0.35, 2.7]:
             _add_architecture_asset(shrine, "res://assets/realistic/nature/dry_stone_wall_section.glb", Vector3(side * 4.6, 0.0, depth), 1.35, PI * 0.5)
-            _add_static_box_collision(shrine, Vector3(side * 4.6, 0.82, depth), Vector3(0.76, 1.68, 3.62), PI * 0.5)
+            _add_static_box_collision(shrine, Vector3(side * 4.6, 0.82, depth), Vector3(3.62, 1.68, 0.76), PI * 0.5)
         _add_architecture_asset(shrine, "res://assets/realistic/nature/rocky_outcrop.glb", Vector3(side * 6.8, 0.0, -2.2), 0.42, side * 0.35)
 
     var altar := Node3D.new()
