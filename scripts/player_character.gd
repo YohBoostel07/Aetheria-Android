@@ -141,8 +141,8 @@ func _create_cape() -> void:
             var u := float(column) / float(columns - 1)
             var x := lerpf(-width, width, u)
             var y := 1.48 - v * 1.04
-            var z := 0.24 + 0.075 * v + sin(u * PI * 5.0 + v * 2.1) * 0.028 * v
-            z += sin(v * PI * 2.0) * 0.018
+            var z := -0.24 - 0.075 * v - sin(u * PI * 5.0 + v * 2.1) * 0.028 * v
+            z -= sin(v * PI * 2.0) * 0.018
             surface.set_uv(Vector2(u, v))
             surface.add_vertex(Vector3(x, y, z))
     for row in range(rows - 1):
@@ -180,7 +180,7 @@ func _create_cape() -> void:
     white.metallic = 0.18
     white.roughness = 0.32
     crest.material_override = white
-    crest.position = Vector3(0.0, 1.13, 0.315)
+    crest.position = Vector3(0.0, 1.13, -0.315)
     hero_root.add_child(crest)
 
 func _make_crest_mesh() -> ArrayMesh:
@@ -211,7 +211,7 @@ func _create_armor_details() -> void:
             var u := float(column) / float(columns - 1)
             var x := lerpf(-0.205, 0.205, u)
             var y := lerpf(1.37, 0.99, v)
-            var z := -0.205 - (1.0 - absf(x) / 0.205) * 0.035 - sin(v * PI) * 0.025
+            var z := 0.205 + (1.0 - absf(x) / 0.205) * 0.035 + sin(v * PI) * 0.025
             st.set_uv(Vector2(u, v))
             st.add_vertex(Vector3(x, y, z))
     for row in range(rows - 1):
@@ -242,7 +242,7 @@ func _create_armor_details() -> void:
         var pauldron := MeshInstance3D.new()
         pauldron.name = "BlueSteelPauldron"
         pauldron.mesh = _make_pauldron_mesh()
-        pauldron.position = Vector3(side * 0.34, 1.43, -0.015)
+        pauldron.position = Vector3(side * 0.34, 1.43, 0.015)
         pauldron.scale = Vector3(0.22, 0.15, 0.22)
         pauldron.material_override = steel
         hero_root.add_child(pauldron)
