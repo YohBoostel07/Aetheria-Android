@@ -584,7 +584,7 @@ func _animation_with(fragment: String) -> String:
     return ""
 
 func play_attack() -> void:
-    attack_time = 0.42
+    attack_time = 0.55
     if sword_sparks != null:
         sword_sparks.emitting = false
         sword_sparks.restart()
