@@ -456,6 +456,8 @@ func _create_gauntlets() -> void:
     steel.roughness = 0.28
     for side in [-1.0, 1.0]:
         var arm_index := _find_bone_index(["lowerarm", "r"]) if side > 0.0 else _find_bone_index(["lowerarm", "l"])
+        if arm_index < 0:
+            arm_index = _find_bone_index(["forearm", "r"]) if side > 0.0 else _find_bone_index(["forearm", "l"])
         var attachment := _bone_attachment(arm_index, "GauntletAttachmentRight" if side > 0.0 else "GauntletAttachmentLeft")
         if attachment == null:
             continue
