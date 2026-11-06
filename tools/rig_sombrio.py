@@ -188,7 +188,7 @@ for action in [walk, idle, attack]:
     track.strips.new(action.name, int(action.frame_range[0]), action)
 
 bpy.context.scene.frame_start = 1
-bpy.context.scene.frame_end = 24
+bpy.context.scene.frame_end = 25
 bpy.context.scene.render.fps = 24
 bpy.ops.object.mode_set(mode="OBJECT")
 
