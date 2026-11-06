@@ -24,7 +24,7 @@ jobs:
       - name: Install Java and Android command-line tools
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends openjdk-17-jdk-headless unzip wget blender
+          apt-get install -y --no-install-recommends openjdk-17-jdk-headless unzip wget blender python3-numpy
           mkdir -p "$ANDROID_HOME/cmdline-tools"
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/android-tools.zip
           mkdir -p /tmp/android-tools
@@ -74,13 +74,30 @@ jobs:
 
       - name: Download high-detail Sombrio model (CC0)
         run: |
-          mkdir -p assets/realistic/characters
+          export PYTHONPATH=/usr/lib/python3/dist-packages:$PYTHONPATH
+          mkdir -p assets/realistic/characters assets/realistic/weapons assets/realistic/architecture
           wget -q --show-progress https://grab3d.com/dl/horror-monster/horror-monster-light.glb -O assets/realistic/characters/horror_monster_light.glb
           test -s assets/realistic/characters/horror_monster_light.glb
           test "$(wc -c < assets/realistic/characters/horror_monster_light.glb)" -gt 1000000
           head -c 4 assets/realistic/characters/horror_monster_light.glb | grep -q glTF
           blender --background --python tools/rig_sombrio.py -- assets/realistic/characters/horror_monster_light.glb assets/realistic/characters/horror_monster_rigged.glb
           test -s assets/realistic/characters/horror_monster_rigged.glb
+          wget -q --show-progress https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb -O assets/realistic/characters/man-base-character-rigged.glb
+          test -s assets/realistic/characters/man-base-character-rigged.glb
+          wget -q --show-progress https://grab3d.com/dl/fantasy-sword/fantasy-sword-light.glb -O assets/realistic/weapons/fantasy-sword-light.glb
+          test -s assets/realistic/weapons/fantasy-sword-light.glb
+          wget -q --show-progress https://files.innerscene.com/library/arch-bridge-stone-719c9452/2db4fb9cae8f0ff2672d/arch-bridge-stone.glb -O assets/realistic/architecture/arch_bridge_stone.glb
+          test -s assets/realistic/architecture/arch_bridge_stone.glb
+          wget -q --show-progress https://grab3d.com/dl/roman-ruins/roman-ruins.glb -O assets/realistic/architecture/roman_ruins.glb
+          test -s assets/realistic/architecture/roman_ruins.glb
+          wget -q --show-progress https://grab3d.com/dl/ruin-archway/ruin-archway.glb -O assets/realistic/architecture/ruin_archway.glb
+          test -s assets/realistic/architecture/ruin_archway.glb
+          wget -q --show-progress https://grab3d.com/dl/broken-column-stump/broken-column-stump.glb -O assets/realistic/architecture/broken_column_stump.glb
+          test -s assets/realistic/architecture/broken_column_stump.glb
+          wget -q --show-progress https://grab3d.com/dl/ruin-wall-corner/ruin-wall-corner.glb -O assets/realistic/architecture/ruin_wall_corner.glb
+          test -s assets/realistic/architecture/ruin_wall_corner.glb
+          wget -q --show-progress https://grab3d.com/dl/ruin-wall-segment/ruin-wall-segment.glb -O assets/realistic/architecture/ruin_wall_segment.glb
+          test -s assets/realistic/architecture/ruin_wall_segment.glb
 
       - name: Validate project
         run: godot --headless --editor --path . --quit
