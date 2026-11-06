@@ -291,7 +291,7 @@ func _attach_sword() -> void:
         hand_index = _find_bone_index(["hand", "r"])
     if hand_index < 0:
         hand_index = _find_bone_index(["right", "hand"])
-    var attachment := _bone_attachment(hand_index, "RightHandWeaponAttachment")
+    var attachment: Node3D = _bone_attachment(hand_index, "RightHandWeaponAttachment")
     if attachment == null:
         attachment = Node3D.new()
         attachment.name = "RightHandWeaponFallback"
