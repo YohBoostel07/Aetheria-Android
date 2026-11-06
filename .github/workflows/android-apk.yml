@@ -72,6 +72,13 @@ jobs:
       - name: Prepare output
         run: mkdir -p build
 
+      - name: Download high-detail Sombrio model (CC0)
+        run: |
+          mkdir -p assets/realistic/characters
+          wget -q --show-progress https://grab3d.com/dl/horror-monster/horror-monster-light.glb -O assets/realistic/characters/horror_monster_light.glb
+          test -s assets/realistic/characters/horror_monster_light.glb
+          file assets/realistic/characters/horror_monster_light.glb
+
       - name: Validate project
         run: godot --headless --editor --path . --quit
 
