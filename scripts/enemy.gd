@@ -23,6 +23,8 @@ var health_label: Label3D
 var walk_phase := 0.0
 var is_defeated := false
 var is_walking := false
+var hit_particles: CPUParticles3D
+var aura_light: OmniLight3D
 
 func _ready() -> void:
     add_to_group("enemies")
@@ -49,6 +51,8 @@ func _physics_process(delta: float) -> void:
     attack_timer = maxf(0.0, attack_timer - delta)
     hit_flash = maxf(0.0, hit_flash - delta)
     _update_hit_flash()
+    if aura_light != null:
+        aura_light.light_energy = 1.0 if hit_flash > 0.0 else 0.16
 
     var to_player := player.global_position - global_position
     to_player.y = 0.0
@@ -109,6 +113,10 @@ func take_damage(amount: int) -> void:
     if health_label != null:
         health_label.text = "Sombrio  %d/%d" % [health, max_health]
     hit_flash = 0.16
+    if hit_particles != null:
+        hit_particles.emitting = false
+        hit_particles.restart()
+        hit_particles.emitting = true
     if health <= 0:
         is_defeated = true
         defeated.emit()
@@ -141,6 +149,31 @@ func _build_creature() -> void:
     imported.position = Vector3.ZERO
     imported.scale = Vector3.ONE * 0.96
     _collect_model_materials(imported)
+
+    aura_light = OmniLight3D.new()
+    aura_light.name = "SombrioCorruptedAura"
+    aura_light.position = Vector3(0.0, 1.05, 0.0)
+    aura_light.light_color = Color(0.36, 0.025, 0.018)
+    aura_light.light_energy = 0.16
+    aura_light.omni_range = 2.8
+    add_child(aura_light)
+
+    hit_particles = CPUParticles3D.new()
+    hit_particles.name = "SombrioImpactSparks"
+    hit_particles.position = Vector3(0.0, 1.0, 0.0)
+    hit_particles.amount = 16
+    hit_particles.lifetime = 0.38
+    hit_particles.one_shot = true
+    hit_particles.emitting = false
+    hit_particles.direction = Vector3(0.0, 1.0, 0.0)
+    hit_particles.spread = 76.0
+    hit_particles.initial_velocity_min = 0.8
+    hit_particles.initial_velocity_max = 2.0
+    hit_particles.gravity = Vector3(0.0, -3.5, 0.0)
+    hit_particles.scale_amount_min = 0.018
+    hit_particles.scale_amount_max = 0.055
+    hit_particles.color = Color(0.85, 0.055, 0.025, 0.95)
+    add_child(hit_particles)
 
     # The CI rigging pass embeds a real skeletal Walk clip in this GLB.
     var animation_player := imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
