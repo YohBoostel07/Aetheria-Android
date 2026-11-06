@@ -5,6 +5,8 @@ const BUSH_ASSET := "res://assets/realistic/nature/bushes.glb"
 const GRASS_ASSET := "res://assets/realistic/nature/grass.glb"
 const ROCK_ASSET := "res://assets/realistic/nature/rock_large.glb"
 const FLOWER_ASSET := "res://assets/realistic/nature/flowers.glb"
+const ROCKY_OUTCROP_ASSET := "res://assets/realistic/nature/rocky_outcrop.glb"
+const DRY_STONE_WALL_ASSET := "res://assets/realistic/nature/dry_stone_wall_section.glb"
 
 var rng := RandomNumberGenerator.new()
 var loaded_assets: Dictionary = {}
@@ -13,13 +15,14 @@ func _ready() -> void:
     rng.seed = 771204
     _load_nature_assets()
     _place_tree_line()
+    _place_photorealistic_rock_formations()
     _scatter_real_vegetation()
     _scatter_real_rocks()
     _decorate_shrine_approach()
     call_deferred("_apply_post_fx")
 
 func _load_nature_assets() -> void:
-    for path in [TREE_ASSET, BUSH_ASSET, GRASS_ASSET, ROCK_ASSET, FLOWER_ASSET]:
+    for path in [TREE_ASSET, BUSH_ASSET, GRASS_ASSET, ROCK_ASSET, FLOWER_ASSET, ROCKY_OUTCROP_ASSET, DRY_STONE_WALL_ASSET]:
         var resource := load(path)
         if resource is PackedScene:
             loaded_assets[path] = resource
@@ -57,6 +60,13 @@ func _place_tree_line() -> void:
     ]
     for i in range(positions.size()):
         _instance_asset(TREE_ASSET, positions[i], rng.randf_range(0.85, 1.2), rng.randf_range(0.0, TAU))
+
+func _place_photorealistic_rock_formations() -> void:
+    _instance_asset(ROCKY_OUTCROP_ASSET, Vector3(-22.0, 0.0, -34.0), 0.78, 0.35)
+    _instance_asset(ROCKY_OUTCROP_ASSET, Vector3(22.0, 0.0, -38.0), 0.72, -0.55)
+    for side in [-1.0, 1.0]:
+        for z in [-12.0, -18.0, -24.0, -30.0]:
+            _instance_asset(DRY_STONE_WALL_ASSET, Vector3(side * 6.2, 0.0, z), 1.0, PI * 0.5)
 
 func _scatter_real_vegetation() -> void:
     for i in range(18):
