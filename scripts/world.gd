@@ -43,9 +43,9 @@ func _process(delta: float) -> void:
     _update_pickups(delta)
     var flicker_time := float(Time.get_ticks_msec()) * 0.001
     for i in range(torch_lights.size()):
+        var flicker := sin(flicker_time * 8.0 + float(i) * 1.7) * 0.09 + sin(flicker_time * 17.0 + float(i)) * 0.035
         var torch_light := torch_lights[i]
         if is_instance_valid(torch_light):
-            var flicker := sin(flicker_time * 8.0 + float(i) * 1.7) * 0.09 + sin(flicker_time * 17.0 + float(i)) * 0.035
             torch_light.light_energy = 0.58 + flicker
         if i < torch_flames.size() and is_instance_valid(torch_flames[i]):
             var flame := torch_flames[i]
