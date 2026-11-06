@@ -110,6 +110,7 @@ jobs:
           test -s assets/realistic/characters/horror_monster_rigged.glb
           wget -q --show-progress https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb -O assets/realistic/characters/man-base-character-rigged.glb
           test -s assets/realistic/characters/man-base-character-rigged.glb
+          head -c 4 assets/realistic/characters/man-base-character-rigged.glb | grep -q glTF
           blender --background --python tools/prepare_hero.py -- assets/realistic/characters/man-base-character-rigged.glb assets/realistic/characters/hero_animated.glb
           test "$(wc -c < assets/realistic/characters/hero_animated.glb)" -gt 1000000
           head -c 4 assets/realistic/characters/hero_animated.glb | grep -q glTF
@@ -127,14 +128,14 @@ jobs:
           test -s assets/realistic/architecture/ruin_wall_corner.glb
           wget -q --show-progress https://grab3d.com/dl/ruin-wall-segment/ruin-wall-segment.glb -O assets/realistic/architecture/ruin_wall_segment.glb
           test -s assets/realistic/architecture/ruin_wall_segment.glb
-          for model in assets/realistic/characters/horror_monster_rigged.glb assets/realistic/characters/hero_animated.glb assets/realistic/weapons/fantasy-sword-light.glb assets/realistic/architecture/*.glb assets/realistic/nature/*.glb; do
-            test -s "$model"
-            head -c 4 "$model" | grep -q glTF
-          done
           wget -q --show-progress https://files.innerscene.com/library/rocky-outcrop-9f14ef52/f6e60f13403504661957/rocky-outcrop.glb -O assets/realistic/nature/rocky_outcrop.glb
           test -s assets/realistic/nature/rocky_outcrop.glb
           wget -q --show-progress https://files.innerscene.com/library/dry-stone-wall-section-f63adad9/8cd0e765f59a9bd3890f/dry-stone-wall-section.glb -O assets/realistic/nature/dry_stone_wall_section.glb
           test -s assets/realistic/nature/dry_stone_wall_section.glb
+          for model in assets/realistic/characters/horror_monster_rigged.glb assets/realistic/characters/hero_animated.glb assets/realistic/weapons/fantasy-sword-light.glb assets/realistic/architecture/*.glb assets/realistic/nature/*.glb; do
+            test -s "$model"
+            head -c 4 "$model" | grep -q glTF
+          done
 
       - name: Validate project and imported 3D assets
         run: |
