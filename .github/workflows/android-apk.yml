@@ -138,6 +138,7 @@ jobs:
           done
 
       - name: Validate project and imported 3D assets
+        shell: bash
         run: |
           set -o pipefail
           godot --headless --editor --path . --quit 2>&1 | tee /tmp/aetheria-import.log
@@ -147,6 +148,7 @@ jobs:
           fi
 
       - name: Runtime smoke test for protagonist, Sombrio and world
+        shell: bash
         run: |
           set -o pipefail
           godot --headless --path . --quit-after 90 2>&1 | tee /tmp/aetheria-smoke.log
