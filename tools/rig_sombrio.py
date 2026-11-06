@@ -134,6 +134,59 @@ for fc in walk.fcurves:
         key.interpolation = "BEZIER"
     fc.modifiers.new("CYCLES")
 walk.use_fake_user = True
+
+# A restrained idle keeps the creature alive when it is not pursuing the player.
+idle = bpy.data.actions.new("Idle")
+arm_obj.animation_data.action = idle
+for frame, phase in [(1, 0.0), (7, math.pi * 0.5), (13, math.pi), (19, math.pi * 1.5), (25, math.tau)]:
+    for pb in arm_obj.pose.bones:
+        pb.rotation_euler = (0.0, 0.0, 0.0)
+    arm_obj.pose.bones["Spine"].rotation_euler.x = math.sin(phase) * 0.018
+    arm_obj.pose.bones["Chest"].rotation_euler.x = math.sin(phase) * 0.012
+    arm_obj.pose.bones["Head"].rotation_euler.z = math.sin(phase * 0.5) * 0.018
+    arm_obj.pose.bones["Hips"].rotation_euler.z = math.sin(phase) * 0.012
+    for pb in arm_obj.pose.bones:
+        pb.keyframe_insert(data_path="rotation_euler", frame=frame, group=pb.name)
+for fc in idle.fcurves:
+    for key in fc.keyframe_points:
+        key.interpolation = "BEZIER"
+    fc.modifiers.new("CYCLES")
+idle.use_fake_user = True
+
+# A two-arm claw strike: wind-up, forward slash, follow-through and recovery.
+attack = bpy.data.actions.new("Attack")
+arm_obj.animation_data.action = attack
+for frame, upper_r, lower_r, upper_l, lower_l, torso in [
+    (1, 0.0, 0.0, 0.0, 0.0, 0.0),
+    (4, -0.85, 0.45, -0.45, 0.25, 0.18),
+    (8, 0.95, -0.95, 0.55, -0.65, -0.28),
+    (12, 0.35, -0.35, 0.15, -0.2, -0.12),
+    (16, 0.0, 0.0, 0.0, 0.0, 0.0),
+]:
+    for pb in arm_obj.pose.bones:
+        pb.rotation_euler = (0.0, 0.0, 0.0)
+    arm_obj.pose.bones["UpperArm.R"].rotation_euler.x = upper_r
+    arm_obj.pose.bones["LowerArm.R"].rotation_euler.x = lower_r
+    arm_obj.pose.bones["UpperArm.L"].rotation_euler.x = upper_l
+    arm_obj.pose.bones["LowerArm.L"].rotation_euler.x = lower_l
+    arm_obj.pose.bones["Chest"].rotation_euler.z = torso
+    arm_obj.pose.bones["Spine"].rotation_euler.z = torso * 0.6
+    for pb in arm_obj.pose.bones:
+        pb.keyframe_insert(data_path="rotation_euler", frame=frame, group=pb.name)
+for fc in attack.fcurves:
+    for key in fc.keyframe_points:
+        key.interpolation = "BEZIER"
+attack.use_fake_user = True
+
+# Export the three independent animation clips as NLA tracks for Godot.
+arm_obj.animation_data.action = None
+for track in list(arm_obj.animation_data.nla_tracks):
+    arm_obj.animation_data.nla_tracks.remove(track)
+for action in [walk, idle, attack]:
+    track = arm_obj.animation_data.nla_tracks.new()
+    track.name = action.name
+    track.strips.new(action.name, int(action.frame_range[0]), action)
+
 bpy.context.scene.frame_start = 1
 bpy.context.scene.frame_end = 24
 bpy.context.scene.render.fps = 24
@@ -150,7 +203,7 @@ bpy.ops.export_scene.gltf(
     export_format="GLB",
     use_selection=True,
     export_animations=True,
-    export_nla_strips=False,
+    export_nla_strips=True,
     export_force_sampling=True,
 )
 print("RIGGED_SOMBRIO_OK", len(meshes), "meshes", len(arm_data.bones), "bones", output_path)
