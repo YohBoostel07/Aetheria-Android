@@ -75,7 +75,7 @@ jobs:
       - name: Download high-detail Sombrio model (CC0)
         run: |
           export PYTHONPATH=/usr/lib/python3/dist-packages:$PYTHONPATH
-          mkdir -p assets/realistic/characters assets/realistic/weapons assets/realistic/architecture
+          mkdir -p assets/realistic/characters assets/realistic/weapons assets/realistic/architecture assets/realistic/nature
           wget -q --show-progress https://grab3d.com/dl/horror-monster/horror-monster-light.glb -O assets/realistic/characters/horror_monster_light.glb
           test -s assets/realistic/characters/horror_monster_light.glb
           test "$(wc -c < assets/realistic/characters/horror_monster_light.glb)" -gt 1000000
