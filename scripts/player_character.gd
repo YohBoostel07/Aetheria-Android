@@ -1,6 +1,6 @@
 extends Node3D
 
-const HERO_MODEL_PATH := "res://assets/realistic/characters/man-base-character-rigged.glb"
+const HERO_MODEL_PATH := "res://assets/realistic/characters/hero_animated.glb"
 const SWORD_MODEL_PATH := "res://assets/realistic/weapons/fantasy-sword-light.glb"
 
 var hero_root: Node3D
