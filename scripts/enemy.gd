@@ -174,6 +174,18 @@ func _build_creature() -> void:
 
     hit_particles = CPUParticles3D.new()
     hit_particles.name = "SombrioImpactSparks"
+    var impact_mesh := QuadMesh.new()
+    impact_mesh.size = Vector2(0.06, 0.06)
+    var impact_material := StandardMaterial3D.new()
+    impact_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    impact_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    impact_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+    impact_material.albedo_color = Color(0.9, 0.07, 0.025, 0.95)
+    impact_material.emission_enabled = true
+    impact_material.emission = Color(0.8, 0.025, 0.008)
+    impact_material.emission_energy_multiplier = 1.8
+    impact_mesh.material = impact_material
+    hit_particles.mesh = impact_mesh
     hit_particles.position = Vector3(0.0, 1.0, 0.0)
     hit_particles.amount = 16
     hit_particles.lifetime = 0.38
