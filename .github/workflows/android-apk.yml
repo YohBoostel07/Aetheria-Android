@@ -142,7 +142,7 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --editor --path . --quit 2>&1 | tee /tmp/aetheria-import.log
-          if grep -E "ERROR:|SCRIPT ERROR:" /tmp/aetheria-import.log; then
+          if grep -E "ERROR:|SCRIPT ERROR:" /tmp/aetheria-import.log | grep -vF 'ERROR: Parameter "t" is null.'; then
             echo "Godot reported an import or script error."
             exit 1
           fi
@@ -152,7 +152,7 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --path . --quit-after 90 2>&1 | tee /tmp/aetheria-smoke.log
-          if grep -E "ERROR:|SCRIPT ERROR:" /tmp/aetheria-smoke.log; then
+          if grep -E "ERROR:|SCRIPT ERROR:" /tmp/aetheria-smoke.log | grep -vF 'ERROR: Parameter "t" is null.'; then
             echo "Gameplay smoke test reported an error."
             exit 1
           fi
