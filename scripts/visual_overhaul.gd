@@ -3,7 +3,6 @@ extends Node3D
 const TREE_ASSET := "res://assets/realistic/nature/dead_trees.glb"
 const BUSH_ASSET := "res://assets/realistic/nature/bushes.glb"
 const GRASS_ASSET := "res://assets/realistic/nature/grass.glb"
-const ROCK_ASSET := "res://assets/realistic/nature/rock_large.glb"
 const FLOWER_ASSET := "res://assets/realistic/nature/flowers.glb"
 const ROCKY_OUTCROP_ASSET := "res://assets/realistic/nature/rocky_outcrop.glb"
 const DRY_STONE_WALL_ASSET := "res://assets/realistic/nature/dry_stone_wall_section.glb"
@@ -17,12 +16,10 @@ func _ready() -> void:
     _place_tree_line()
     _place_photorealistic_rock_formations()
     _scatter_real_vegetation()
-    _scatter_real_rocks()
-    _decorate_shrine_approach()
     call_deferred("_apply_post_fx")
 
 func _load_nature_assets() -> void:
-    for path in [TREE_ASSET, BUSH_ASSET, GRASS_ASSET, ROCK_ASSET, FLOWER_ASSET, ROCKY_OUTCROP_ASSET, DRY_STONE_WALL_ASSET]:
+    for path in [TREE_ASSET, BUSH_ASSET, GRASS_ASSET, FLOWER_ASSET, ROCKY_OUTCROP_ASSET, DRY_STONE_WALL_ASSET]:
         var resource := load(path)
         if resource is PackedScene:
             loaded_assets[path] = resource
@@ -81,18 +78,6 @@ func _scatter_real_vegetation() -> void:
         var pos := Vector3(rng.randf_range(-37.0, 37.0), 0.0, rng.randf_range(-44.0, 42.0))
         if _valid_scatter_position(pos):
             _instance_asset(FLOWER_ASSET, pos, rng.randf_range(0.65, 1.05), rng.randf_range(0.0, TAU))
-
-func _scatter_real_rocks() -> void:
-    for i in range(22):
-        var pos := Vector3(rng.randf_range(-43.0, 43.0), 0.0, rng.randf_range(-49.0, 47.0))
-        if _valid_scatter_position(pos):
-            _instance_asset(ROCK_ASSET, pos, rng.randf_range(0.65, 1.8), rng.randf_range(0.0, TAU))
-
-func _decorate_shrine_approach() -> void:
-    # Keep the shrine approach readable; real rock assets mark its edges.
-    for side in [-1.0, 1.0]:
-        for z in [-29.0, -33.0, -37.0]:
-            _instance_asset(ROCK_ASSET, Vector3(side * 5.6, 0.0, z), rng.randf_range(0.45, 0.7), rng.randf_range(0.0, TAU))
 
 func _apply_post_fx() -> void:
     var world := get_parent()
