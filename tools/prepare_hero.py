@@ -68,6 +68,13 @@ for mesh_object in meshes:
         zs = [vertex.co.z for vertex in mesh_object.data.vertices]
         print("HERO_MESH_BOUNDS", mesh_object.name, (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs)))
 
+def tint_pbr_material(material, color):
+    material.diffuse_color = color
+    if material.use_nodes and material.node_tree:
+        for node in material.node_tree.nodes:
+            if node.type == "BSDF_PRINCIPLED":
+                node.inputs["Base Color"].default_value = color
+
 # Add separate PBR tint slots to the character's existing textured atlas.
 for mesh_object in meshes:
     mesh = mesh_object.data
@@ -83,13 +90,13 @@ for mesh_object in meshes:
     base = mesh.materials[0]
     hair = base.copy()
     hair.name = "CostumeMatA"
-    hair.diffuse_color = (0.10, 0.11, 0.15, 1.0)
+    tint_pbr_material(hair, (0.10, 0.11, 0.15, 1.0))
     shirt = base.copy()
     shirt.name = "CostumeMatB"
-    shirt.diffuse_color = (0.16, 0.25, 0.46, 1.0)
+    tint_pbr_material(shirt, (0.16, 0.25, 0.46, 1.0))
     shorts = base.copy()
     shorts.name = "CostumeMatC"
-    shorts.diffuse_color = (0.075, 0.09, 0.14, 1.0)
+    tint_pbr_material(shorts, (0.075, 0.09, 0.14, 1.0))
     hair_index = len(mesh.materials)
     mesh.materials.append(hair)
     shirt_index = len(mesh.materials)
