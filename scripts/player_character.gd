@@ -18,6 +18,8 @@ func _ready() -> void:
     if hero_root != null:
         _create_cape()
         _create_armor_details()
+        _create_spiky_hair()
+        _create_boots()
         _attach_sword()
 
 func _process(delta: float) -> void:
@@ -267,6 +269,156 @@ func _make_pauldron_mesh() -> ArrayMesh:
             var b := ring * segments + (segment + 1) % segments
             var c := a + segments
             var d := (ring * segments + (segment + 1) % segments) + segments
+            st.add_index(a)
+            st.add_index(c)
+            st.add_index(b)
+            st.add_index(b)
+            st.add_index(c)
+            st.add_index(d)
+    st.generate_normals()
+    return st.commit()
+
+func _create_spiky_hair() -> void:
+    var head_index := _find_bone_index(["head"])
+    var head_attachment := _bone_attachment(head_index, "HeroSpikyHairAttachment")
+    var hair_parent: Node3D = head_attachment if head_attachment != null else hero_root
+    var hair_root := Node3D.new()
+    hair_root.name = "BlackSpikyHairSilhouette"
+    if head_attachment == null:
+        hair_root.position = Vector3(0.0, 1.62, 0.0)
+    else:
+        hair_root.position = Vector3(0.0, 0.10, 0.0)
+    hair_parent.add_child(hair_root)
+
+    var hair_material := StandardMaterial3D.new()
+    hair_material.albedo_color = Color(0.012, 0.016, 0.028)
+    hair_material.roughness = 0.72
+    hair_material.metallic = 0.015
+    for i in range(9):
+        var angle := TAU * float(i) / 9.0
+        var base := Vector3(cos(angle) * 0.075, 0.055 + float(i % 3) * 0.012, sin(angle) * 0.065)
+        var tip := Vector3(cos(angle) * 0.14, 0.28 + float(i % 3) * 0.035, sin(angle) * 0.13)
+        if i == 0 or i == 1 or i == 8:
+            tip.z += 0.045
+        var spike := MeshInstance3D.new()
+        spike.name = "HairSpike_%02d" % i
+        spike.mesh = _make_tapered_spike(base, tip, 0.047)
+        spike.material_override = hair_material
+        hair_root.add_child(spike)
+
+func _make_tapered_spike(base: Vector3, tip: Vector3, base_radius: float) -> ArrayMesh:
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var axis := (tip - base).normalized()
+    var tangent := axis.cross(Vector3.RIGHT).normalized()
+    if tangent.length_squared() < 0.01:
+        tangent = axis.cross(Vector3.FORWARD).normalized()
+    var bitangent := axis.cross(tangent).normalized()
+    var rings := 5
+    var segments := 7
+    for ring in range(rings):
+        var t := float(ring) / float(rings - 1)
+        var radius := base_radius * pow(1.0 - t, 1.15) + 0.001
+        var center := base.lerp(tip, t)
+        for segment in range(segments):
+            var angle := TAU * float(segment) / float(segments)
+            var offset := tangent * cos(angle) * radius + bitangent * sin(angle) * radius
+            st.add_vertex(center + offset)
+    for ring in range(rings - 1):
+        for segment in range(segments):
+            var a := ring * segments + segment
+            var b := ring * segments + (segment + 1) % segments
+            var d := (ring + 1) * segments + (segment + 1) % segments
+            var e := (ring + 1) * segments + segment
+            st.add_index(a)
+            st.add_index(e)
+            st.add_index(b)
+            st.add_index(b)
+            st.add_index(e)
+            st.add_index(d)
+    st.generate_normals()
+    return st.commit()
+
+func _create_boots() -> void:
+    var leather := StandardMaterial3D.new()
+    leather.albedo_color = Color(0.025, 0.035, 0.055)
+    leather.roughness = 0.78
+    leather.metallic = 0.12
+    var steel_trim := StandardMaterial3D.new()
+    steel_trim.albedo_color = Color(0.12, 0.22, 0.34)
+    steel_trim.metallic = 0.72
+    steel_trim.roughness = 0.3
+
+    for side in [-1.0, 1.0]:
+        var terms: Array[String] = ["foot"]
+        var side_index := _find_bone_index(["foot", "r"]) if side > 0.0 else _find_bone_index(["foot", "l"])
+        if side_index < 0:
+            side_index = _find_bone_index(["rightfoot"]) if side > 0.0 else _find_bone_index(["leftfoot"])
+        var attachment := _bone_attachment(side_index, "BootAttachmentRight" if side > 0.0 else "BootAttachmentLeft")
+        var boot_parent: Node3D = attachment if attachment != null else hero_root
+        var boot := MeshInstance3D.new()
+        boot.name = "DarkLeatherBoot"
+        boot.mesh = _make_boot_mesh()
+        boot.material_override = leather
+        if attachment == null:
+            boot.position = Vector3(side * 0.13, 0.03, 0.03)
+        boot_parent.add_child(boot)
+
+        var toe_guard := MeshInstance3D.new()
+        toe_guard.name = "BootToeSteelGuard"
+        toe_guard.mesh = _make_boot_toe_mesh()
+        toe_guard.material_override = steel_trim
+        toe_guard.position = Vector3(0.0, -0.045, 0.0)
+        boot.add_child(toe_guard)
+
+func _make_boot_mesh() -> ArrayMesh:
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var profile := [
+        Vector3(0.075, -0.09, 0.15),
+        Vector3(0.085, -0.015, 0.14),
+        Vector3(0.078, 0.07, 0.085),
+        Vector3(0.07, 0.16, 0.065)
+    ]
+    var segments := 14
+    for ring in range(profile.size()):
+        var p := profile[ring]
+        for segment in range(segments):
+            var angle := TAU * float(segment) / float(segments)
+            st.add_vertex(Vector3(cos(angle) * p.x, p.y, sin(angle) * p.z + 0.025))
+    for ring in range(profile.size() - 1):
+        for segment in range(segments):
+            var a := ring * segments + segment
+            var b := ring * segments + (segment + 1) % segments
+            var c := (ring + 1) * segments + segment
+            var d := (ring + 1) * segments + (segment + 1) % segments
+            st.add_index(a)
+            st.add_index(c)
+            st.add_index(b)
+            st.add_index(b)
+            st.add_index(c)
+            st.add_index(d)
+    st.generate_normals()
+    return st.commit()
+
+func _make_boot_toe_mesh() -> ArrayMesh:
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var rings := 4
+    var segments := 14
+    for ring in range(rings):
+        var t := float(ring) / float(rings - 1)
+        var radius_x := lerpf(0.078, 0.018, t)
+        var radius_z := lerpf(0.085, 0.025, t)
+        for segment in range(segments):
+            var angle := TAU * float(segment) / float(segments)
+            st.add_vertex(Vector3(cos(angle) * radius_x, -0.035 + t * 0.055, sin(angle) * radius_z + 0.11))
+    for ring in range(rings - 1):
+        for segment in range(segments):
+            var a := ring * segments + segment
+            var b := ring * segments + (segment + 1) % segments
+            var c := (ring + 1) * segments + segment
+            var d := (ring + 1) * segments + (segment + 1) % segments
             st.add_index(a)
             st.add_index(c)
             st.add_index(b)
