@@ -54,7 +54,7 @@ bones = {
 }
 print("HERO_RIG_BONES", bones)
 print("HERO_ALL_BONE_NAMES", [bone.name for bone in armature.data.bones])
-required_bones = ["hips", "spine", "upper_arm_r", "upper_arm_l", "upper_leg_r", "lower_leg_r", "upper_leg_l", "lower_leg_l"]
+required_bones = ["hips", "spine", "upper_arm_r", "lower_arm_r", "upper_arm_l", "lower_arm_l", "upper_leg_r", "lower_leg_r", "upper_leg_l", "lower_leg_l"]
 missing_bones = [key for key in required_bones if not bones.get(key)]
 if missing_bones:
     raise RuntimeError("Hero rig is missing locomotion bones: " + ", ".join(missing_bones))
@@ -277,6 +277,11 @@ attack = create_action("Attack", [
 for action in list(bpy.data.actions):
     if action.name.startswith("Armature|"):
         action.name = action.name.split("|")[-1]
+    action_key = action.name.lower()
+    if "walk" in action_key:
+        action.name = "Aetheria_Walk"
+    elif "run" in action_key:
+        action.name = "Aetheria_Run"
 armature.animation_data.action = None
 for track in list(armature.animation_data.nla_tracks):
     armature.animation_data.nla_tracks.remove(track)
