@@ -1,7 +1,7 @@
 import bpy
 import math
 import sys
-from mathutils import Vector
+from mathutils import Vector, Matrix
 
 args = sys.argv[sys.argv.index("--") + 1:]
 source_path, output_path = args[0], args[1]
@@ -69,13 +69,41 @@ for side, suffix in [(-1, ".L"), (1, ".R")]:
 
 bpy.ops.object.mode_set(mode="OBJECT")
 
-# Bind each mesh to the new skeleton using Blender's heat-weighted automatic skinning.
+# Bind the scanned mesh with distance-based smooth weights. This avoids
+# Blender heat-weight failures on dense scanned geometry and disconnected claws.
+def point_segment_distance(point, start, end):
+    segment = end - start
+    length_squared = segment.length_squared
+    if length_squared < 1e-10:
+        return (point - start).length
+    factor = max(0.0, min(1.0, (point - start).dot(segment) / length_squared))
+    return (point - (start + segment * factor)).length
+
+bone_segments = []
+for data_bone in arm_data.bones:
+    bone_segments.append((data_bone.name, data_bone.head_local.copy(), data_bone.tail_local.copy()))
+
 for obj in meshes:
-    bpy.ops.object.select_all(action="DESELECT")
-    obj.select_set(True)
-    arm_obj.select_set(True)
-    bpy.context.view_layer.objects.active = arm_obj
-    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    # Bake imported object transforms so vertices and skeleton share one space.
+    obj.data.transform(obj.matrix_world)
+    obj.matrix_world = Matrix.Identity(4)
+    obj.parent = arm_obj
+    modifier = obj.modifiers.new("Sombrio skeletal deformation", "ARMATURE")
+    modifier.object = arm_obj
+
+    groups = {name: obj.vertex_groups.new(name=name) for name, _, _ in bone_segments}
+    for vertex in obj.data.vertices:
+        point = vertex.co
+        ranked = []
+        for name, head, tail in bone_segments:
+            distance = point_segment_distance(point, head, tail)
+            ranked.append((distance, name))
+        ranked.sort(key=lambda item: item[0])
+        nearest = ranked[:3]
+        weights = [1.0 / max(distance, 0.035) ** 2.0 for distance, _ in nearest]
+        total = sum(weights)
+        for weight, (_, name) in zip(weights, nearest):
+            groups[name].add([vertex.index], weight / total, "REPLACE")
 
 # Create an actual alternating biped gait (legs, arms and counter-rotating torso).
 bpy.context.view_layer.objects.active = arm_obj
