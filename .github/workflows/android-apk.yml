@@ -84,6 +84,8 @@ jobs:
           test -s assets/realistic/characters/horror_monster_rigged.glb
           wget -q --show-progress https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb -O assets/realistic/characters/man-base-character-rigged.glb
           test -s assets/realistic/characters/man-base-character-rigged.glb
+          blender --background --python tools/prepare_hero.py -- assets/realistic/characters/man-base-character-rigged.glb assets/realistic/characters/hero_animated.glb || cp assets/realistic/characters/man-base-character-rigged.glb assets/realistic/characters/hero_animated.glb
+          test -s assets/realistic/characters/hero_animated.glb
           wget -q --show-progress https://grab3d.com/dl/fantasy-sword/fantasy-sword-light.glb -O assets/realistic/weapons/fantasy-sword-light.glb
           test -s assets/realistic/weapons/fantasy-sword-light.glb
           wget -q --show-progress https://files.innerscene.com/library/arch-bridge-stone-719c9452/2db4fb9cae8f0ff2672d/arch-bridge-stone.glb -O assets/realistic/architecture/arch_bridge_stone.glb
