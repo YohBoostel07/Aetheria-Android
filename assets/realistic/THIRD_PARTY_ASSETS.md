@@ -20,3 +20,6 @@ The Android workflow downloads these CC0 assets into the build workspace before 
 - **Roman Ruins, Ruin Archway, Broken Column Stump, Ruin Wall Corner and Ruin Wall Segment** — Grab3D Cozy Ancient Ruins Kit, CC0 1.0; modular 2K PBR architecture. https://grab3d.com/kits/cozy-ancient-ruins/
 
 The bridge is a real-world-scale architectural model. The modular Grab3D ruin pieces are stylized PBR assets, used as supporting set dressing rather than represented as photogrammetry. The hero and sword are high-detail PBR assets. All downloaded models are used under their stated CC0 terms.
+
+- **Rocky outcrop** — Innerscene original model, CC0; detailed granite formation with 40 separate blocks, lichen, moss and terrain. https://www.innerscene.com/tools/library/3d-parts/rocky-outcrop-9f14ef52
+- **Dry stone wall section** — Innerscene original model, CC0; real-scale fieldstone masonry. https://www.innerscene.com/tools/library/3d-parts/dry-stone-wall-section-f63adad9
