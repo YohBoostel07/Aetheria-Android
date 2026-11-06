@@ -5,6 +5,10 @@ on:
   push:
     branches: ["**"]
 
+concurrency:
+  group: aetheria-android-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
