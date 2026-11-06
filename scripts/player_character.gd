@@ -25,6 +25,7 @@ func _ready() -> void:
         _create_armor_details()
         _create_spiky_hair()
         _create_boots()
+        _create_gauntlets()
         _attach_sword()
 
 func _process(delta: float) -> void:
@@ -442,6 +443,49 @@ func _make_boot_toe_mesh() -> ArrayMesh:
     st.generate_normals()
     return st.commit()
 
+func _create_gauntlets() -> void:
+    var steel := StandardMaterial3D.new()
+    steel.albedo_color = Color(0.045, 0.085, 0.15)
+    steel.metallic = 0.78
+    steel.roughness = 0.28
+    for side in [-1.0, 1.0]:
+        var arm_index := _find_bone_index(["lowerarm", "r"]) if side > 0.0 else _find_bone_index(["lowerarm", "l"])
+        var attachment := _bone_attachment(arm_index, "GauntletAttachmentRight" if side > 0.0 else "GauntletAttachmentLeft")
+        if attachment == null:
+            continue
+        var guard := MeshInstance3D.new()
+        guard.name = "LayeredBlueSteelForearmGuard"
+        guard.mesh = _make_forearm_guard_mesh()
+        guard.material_override = steel
+        attachment.add_child(guard)
+
+func _make_forearm_guard_mesh() -> ArrayMesh:
+    var st := SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var rings := 5
+    var segments := 16
+    for ring in range(rings):
+        var t := float(ring) / float(rings - 1)
+        var radius := lerpf(0.073, 0.095, sin(t * PI))
+        var y := lerpf(-0.045, 0.19, t)
+        for segment in range(segments):
+            var angle := TAU * float(segment) / float(segments)
+            st.add_vertex(Vector3(cos(angle) * radius, y, sin(angle) * radius))
+    for ring in range(rings - 1):
+        for segment in range(segments):
+            var a := ring * segments + segment
+            var b := ring * segments + (segment + 1) % segments
+            var c := (ring + 1) * segments + segment
+            var d := (ring + 1) * segments + (segment + 1) % segments
+            st.add_index(a)
+            st.add_index(c)
+            st.add_index(b)
+            st.add_index(b)
+            st.add_index(c)
+            st.add_index(d)
+    st.generate_normals()
+    return st.commit()
+
 func _attach_sword() -> void:
     var packed := load(SWORD_MODEL_PATH) as PackedScene
     if packed == null:
@@ -472,7 +516,7 @@ func _attach_sword() -> void:
     sword_root.position = Vector3(0.0, 0.0, 0.0)
     attachment.add_child(sword_root)
     sword_root.add_child(sword)
-    sword.position = Vector3.ZERO
+    sword.position = Vector3(0.0, 0.42, 0.0)
     sword_rest_rotation = sword_root.rotation
 
     sword_sparks = CPUParticles3D.new()
