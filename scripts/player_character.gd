@@ -403,7 +403,7 @@ func _make_boot_mesh() -> ArrayMesh:
     ]
     var segments := 14
     for ring in range(profile.size()):
-        var p := profile[ring]
+        var p: Vector3 = profile[ring]
         for segment in range(segments):
             var angle := TAU * float(segment) / float(segments)
             st.add_vertex(Vector3(cos(angle) * p.x, p.y, sin(angle) * p.z + 0.025))
