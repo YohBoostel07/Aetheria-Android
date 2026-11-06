@@ -50,6 +50,17 @@ bones = {
 }
 print("HERO_RIG_BONES", bones)
 print("HERO_ALL_BONE_NAMES", [bone.name for bone in armature.data.bones])
+for mesh_object in meshes:
+    slot_report = []
+    for slot in mesh_object.material_slots:
+        material = slot.material
+        image_names = []
+        if material and material.use_nodes and material.node_tree:
+            for node in material.node_tree.nodes:
+                if node.type == "TEX_IMAGE" and node.image:
+                    image_names.append(node.image.name)
+        slot_report.append((material.name if material else "None", image_names))
+    print("HERO_MESH_MATERIALS", mesh_object.name, slot_report)
 
 # Build fitted dark fabric leg armor on the actual rig, covering the base mesh shorts.
 cloth = bpy.data.materials.new("Hero Midnight Cloth PBR")
