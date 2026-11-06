@@ -128,7 +128,7 @@ for frame, phase in [(1, 0.0), (7, math.pi * 0.5), (13, math.pi), (19, math.pi *
         for name in ["UpperLeg" + suffix, "LowerLeg" + suffix, "UpperArm" + suffix, "LowerArm" + suffix]:
             arm_obj.pose.bones[name].keyframe_insert(data_path="rotation_euler", frame=frame, group=name)
     arm_obj.pose.bones["Spine"].rotation_euler.x = math.sin(phase * 2.0) * 0.025
-    arm_obj.pose.bones["Hips"].location.z = abs(math.sin(phase)) * 0.018
+    arm_obj.pose.bones["Hips"].location.z = 0.0
     arm_obj.pose.bones["Spine"].keyframe_insert(data_path="rotation_euler", frame=frame, group="Spine")
     arm_obj.pose.bones["Hips"].keyframe_insert(data_path="location", frame=frame, group="Hips")
 
