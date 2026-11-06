@@ -1,6 +1,7 @@
 import bpy
 import math
 import sys
+from mathutils import Vector
 
 args = sys.argv[sys.argv.index("--") + 1:]
 source_path, output_path = args[0], args[1]
