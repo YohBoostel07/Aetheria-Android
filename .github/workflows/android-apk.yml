@@ -154,6 +154,14 @@ jobs:
             echo "Gameplay smoke test reported an error."
             exit 1
           fi
+          grep -qi "Aetheria hero animation:.*Idle" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria hero animation:.*Jump" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria hero animation:.*Attack" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria hero animation:.*Walk" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria hero animation:.*Run" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria Sombrio animation:.*Idle" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria Sombrio animation:.*Walk" /tmp/aetheria-smoke.log || exit 1
+          grep -qi "Aetheria Sombrio animation:.*Attack" /tmp/aetheria-smoke.log || exit 1
 
       - name: Export Android debug APK
         run: |
