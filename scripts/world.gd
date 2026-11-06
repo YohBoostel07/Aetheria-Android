@@ -22,6 +22,7 @@ var inventory_label: Label
 var pickup_notice_label: Label
 var pickups: Array[Dictionary] = []
 var torch_lights: Array[OmniLight3D] = []
+var torch_flames: Array[MeshInstance3D] = []
 var crystal_particles: CPUParticles3D
 
 func _ready() -> void:
@@ -44,7 +45,11 @@ func _process(delta: float) -> void:
     for i in range(torch_lights.size()):
         var torch_light := torch_lights[i]
         if is_instance_valid(torch_light):
-            torch_light.light_energy = 0.58 + sin(flicker_time * 8.0 + float(i) * 1.7) * 0.09 + sin(flicker_time * 17.0 + float(i)) * 0.035
+            var flicker := sin(flicker_time * 8.0 + float(i) * 1.7) * 0.09 + sin(flicker_time * 17.0 + float(i)) * 0.035
+            torch_light.light_energy = 0.58 + flicker
+        if i < torch_flames.size() and is_instance_valid(torch_flames[i]):
+            var flame := torch_flames[i]
+            flame.scale = Vector3(1.0 + flicker * 0.8, 1.0 + absf(flicker) * 1.2, 1.0 + flicker * 0.6)
     if enemies_defeated >= 3 and not quest_complete:
         var player := get_node_or_null("Player") as Node3D
         if player != null:
@@ -427,6 +432,41 @@ func _create_torches() -> void:
             flame.position.y = 1.92
             flame.material_override = torch_material
             torch.add_child(flame)
+            torch_flames.append(flame)
+            var embers := CPUParticles3D.new()
+            embers.name = "TorchEmbers"
+            embers.position = Vector3(0.0, 1.98, 0.0)
+            embers.amount = 12
+            embers.lifetime = 0.85
+            embers.emitting = true
+            embers.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+            embers.emission_sphere_radius = 0.10
+            embers.direction = Vector3(0.0, 1.0, 0.0)
+            embers.spread = 22.0
+            embers.initial_velocity_min = 0.18
+            embers.initial_velocity_max = 0.85
+            embers.gravity = Vector3(0.0, -0.28, 0.0)
+            embers.scale_amount_min = 0.012
+            embers.scale_amount_max = 0.035
+            embers.color = Color(1.0, 0.34, 0.06, 0.92)
+            torch.add_child(embers)
+            var smoke := CPUParticles3D.new()
+            smoke.name = "TorchSmoke"
+            smoke.position = Vector3(0.0, 2.02, 0.0)
+            smoke.amount = 8
+            smoke.lifetime = 2.8
+            smoke.emitting = true
+            smoke.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+            smoke.emission_sphere_radius = 0.07
+            smoke.direction = Vector3(0.0, 1.0, 0.0)
+            smoke.spread = 12.0
+            smoke.initial_velocity_min = 0.035
+            smoke.initial_velocity_max = 0.12
+            smoke.gravity = Vector3(0.0, 0.025, 0.0)
+            smoke.scale_amount_min = 0.045
+            smoke.scale_amount_max = 0.12
+            smoke.color = Color(0.22, 0.24, 0.26, 0.22)
+            torch.add_child(smoke)
             var light := OmniLight3D.new()
             light.position.y = 2.0
             light.light_color = Color(1.0, 0.42, 0.16)
