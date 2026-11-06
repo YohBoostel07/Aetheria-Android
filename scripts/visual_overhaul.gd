@@ -3,6 +3,7 @@ extends Node3D
 const TREE_ASSET := "res://assets/realistic/nature/dead_trees.glb"
 const BUSH_ASSET := "res://assets/realistic/nature/bushes.glb"
 const GRASS_ASSET := "res://assets/realistic/nature/grass.glb"
+const ROCK_ASSET := "res://assets/realistic/nature/rock_large.glb"
 const FLOWER_ASSET := "res://assets/realistic/nature/flowers.glb"
 const ROCKY_OUTCROP_ASSET := "res://assets/realistic/nature/rocky_outcrop.glb"
 const DRY_STONE_WALL_ASSET := "res://assets/realistic/nature/dry_stone_wall_section.glb"
@@ -22,10 +23,12 @@ func _ready() -> void:
     _place_photorealistic_rock_formations()
     _place_ancient_ruins()
     _scatter_real_vegetation()
+    _scatter_real_rocks()
+    _create_atmospheric_motes()
     call_deferred("_apply_post_fx")
 
 func _load_nature_assets() -> void:
-    for path in [TREE_ASSET, BUSH_ASSET, GRASS_ASSET, FLOWER_ASSET, ROCKY_OUTCROP_ASSET, DRY_STONE_WALL_ASSET]:
+    for path in [TREE_ASSET, BUSH_ASSET, GRASS_ASSET, ROCK_ASSET, FLOWER_ASSET, ROCKY_OUTCROP_ASSET, DRY_STONE_WALL_ASSET, ROMAN_RUINS_ASSET, RUIN_ARCHWAY_ASSET, BROKEN_COLUMN_ASSET, RUIN_WALL_CORNER_ASSET, RUIN_WALL_SEGMENT_ASSET]:
         var resource := load(path)
         if resource is PackedScene:
             loaded_assets[path] = resource
@@ -95,6 +98,12 @@ func _scatter_real_vegetation() -> void:
         var pos := Vector3(rng.randf_range(-37.0, 37.0), 0.0, rng.randf_range(-44.0, 42.0))
         if _valid_scatter_position(pos):
             _instance_asset(FLOWER_ASSET, pos, rng.randf_range(0.65, 1.05), rng.randf_range(0.0, TAU))
+
+func _scatter_real_rocks() -> void:
+    for i in range(26):
+        var pos := Vector3(rng.randf_range(-43.0, 43.0), 0.0, rng.randf_range(-49.0, 47.0))
+        if _valid_scatter_position(pos):
+            _instance_asset(ROCK_ASSET, pos, rng.randf_range(0.55, 1.65), rng.randf_range(0.0, TAU))
 
 func _create_atmospheric_motes() -> void:
     var motes := CPUParticles3D.new()
