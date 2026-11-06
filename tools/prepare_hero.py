@@ -54,6 +54,10 @@ bones = {
 }
 print("HERO_RIG_BONES", bones)
 print("HERO_ALL_BONE_NAMES", [bone.name for bone in armature.data.bones])
+required_bones = ["hips", "spine", "upper_arm_r", "upper_arm_l", "upper_leg_r", "lower_leg_r", "upper_leg_l", "lower_leg_l"]
+missing_bones = [key for key in required_bones if not bones.get(key)]
+if missing_bones:
+    raise RuntimeError("Hero rig is missing locomotion bones: " + ", ".join(missing_bones))
 for mesh_object in meshes:
     slot_report = []
     for slot in mesh_object.material_slots:
@@ -303,4 +307,8 @@ bpy.ops.export_scene.gltf(
     export_animations=True,
     export_nla_strips=True,
 )
+required_clips = {"Idle", "Jump", "Attack", "Aetheria_Walk", "Aetheria_Run"}
+missing_clips = required_clips.difference(seen)
+if missing_clips:
+    raise RuntimeError("Hero export is missing required animation clips: " + ", ".join(sorted(missing_clips)))
 print("HERO_ANIMATED_EXPORT_OK", len(meshes), "meshes", len(armature.data.bones), "bones", sorted(seen))
