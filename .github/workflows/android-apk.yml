@@ -25,6 +25,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout CC0 nature assets
+        uses: actions/checkout@v4
+        with:
+          repository: Joshkaki00/godotmark
+          ref: main
+          path: godotmark-assets
+          sparse-checkout: |
+            art/nature-benchmark/Dead Trees.glb
+            art/nature-benchmark-archive-20260311_173846/forest_ground_04_1k.gltf/textures
+          sparse-checkout-cone-mode: false
+
       - name: Install Java and Android command-line tools
         run: |
           apt-get update
@@ -80,6 +91,10 @@ jobs:
         run: |
           export PYTHONPATH=/usr/lib/python3/dist-packages:$PYTHONPATH
           mkdir -p assets/realistic/characters assets/realistic/weapons assets/realistic/architecture assets/realistic/nature
+          cp "godotmark-assets/art/nature-benchmark/Dead Trees.glb" assets/realistic/nature/dead_trees.glb
+          cp godotmark-assets/art/nature-benchmark-archive-20260311_173846/forest_ground_04_1k.gltf/textures/forest_ground_04_diff_1k.jpg assets/realistic/materials/forest_floor_albedo.jpg
+          cp godotmark-assets/art/nature-benchmark-archive-20260311_173846/forest_ground_04_1k.gltf/textures/forest_ground_04_nor_gl_1k.jpg assets/realistic/materials/forest_floor_normal.jpg
+          cp godotmark-assets/art/nature-benchmark-archive-20260311_173846/forest_ground_04_1k.gltf/textures/forest_ground_04_rough_1k.jpg assets/realistic/materials/forest_floor_roughness.jpg
           wget -q --show-progress https://grab3d.com/dl/horror-monster/horror-monster-light.glb -O assets/realistic/characters/horror_monster_light.glb
           test -s assets/realistic/characters/horror_monster_light.glb
           test "$(wc -c < assets/realistic/characters/horror_monster_light.glb)" -gt 1000000
