@@ -12,6 +12,9 @@ var current_animation := ""
 var attack_time := 0.0
 var sword_rest_rotation := Vector3.ZERO
 var walk_phase := 0.0
+var idle_breath_time := 0.0
+var spine_bone_index := -1
+var spine_rest_rotation := Quaternion.IDENTITY
 
 func _ready() -> void:
     _load_hero()
@@ -31,6 +34,10 @@ func _process(delta: float) -> void:
             sword_root.rotation = sword_rest_rotation + Vector3(-slash * 1.25, 0.0, slash * 0.45)
         else:
             sword_root.rotation = sword_root.rotation.lerp(sword_rest_rotation, minf(1.0, delta * 14.0))
+    if current_animation == "" and skeleton != null and spine_bone_index >= 0:
+        idle_breath_time += delta
+        var breath := Quaternion(Vector3.RIGHT, sin(idle_breath_time * 1.7) * 0.018)
+        skeleton.set_bone_pose_rotation(spine_bone_index, spine_rest_rotation * breath)
     if cape_mesh != null:
         var speed_factor := 1.0 if current_animation.to_lower().contains("walk") or current_animation.to_lower().contains("run") else 0.0
         cape_mesh.rotation.x = lerpf(cape_mesh.rotation.x, -0.025 - speed_factor * 0.055, minf(1.0, delta * 5.0))
@@ -60,6 +67,9 @@ func _load_hero() -> void:
         for animation_name in animation_player.get_animation_list():
             print("Aetheria hero animation: ", animation_name)
 
+    spine_bone_index = _find_bone_index(["spine"])
+    if spine_bone_index >= 0:
+        spine_rest_rotation = skeleton.get_bone_pose_rotation(spine_bone_index)
     _tint_hero_materials(hero_root)
 
 func _find_skeleton(node: Node) -> Skeleton3D:
@@ -471,7 +481,7 @@ func animate_character(delta: float, horizontal_speed: float, airborne: bool) ->
         if target == "":
             target = _animation_with("run")
     elif horizontal_speed > 0.25:
-        target = _animation_with("run") if horizontal_speed > 6.0 else _animation_with("walk")
+        target = _animation_with("run") if horizontal_speed > 4.2 else _animation_with("walk")
         if target == "":
             target = _animation_with("run")
     else:
