@@ -301,6 +301,7 @@ func _create_ancient_shrine() -> void:
     for side in [-1.0, 1.0]:
         for depth in [-2.0, 0.35, 2.7]:
             _add_architecture_asset(shrine, "res://assets/realistic/nature/dry_stone_wall_section.glb", Vector3(side * 4.6, 0.0, depth), 1.35, PI * 0.5)
+            _add_static_box_collision(shrine, Vector3(side * 4.6, 0.82, depth), Vector3(0.76, 1.68, 3.62), PI * 0.5)
         _add_architecture_asset(shrine, "res://assets/realistic/nature/rocky_outcrop.glb", Vector3(side * 6.8, 0.0, -2.2), 0.42, side * 0.35)
 
     var altar := Node3D.new()
@@ -309,6 +310,7 @@ func _create_ancient_shrine() -> void:
     shrine.add_child(altar)
     _box(altar, "Weathered altar base", Vector3(0, 0.42, 0), Vector3(2.35, 0.84, 1.65), dark_stone_material)
     _box(altar, "Altar capstone", Vector3(0, 0.88, 0), Vector3(2.75, 0.16, 1.92), stone_material)
+    _add_static_box_collision(altar, Vector3(0, 0.5, 0), Vector3(2.35, 1.0, 1.65), 0.0)
     _create_crystal(altar, Vector3(0, 1.65, 0), 1.0)
     _create_crystal(shrine, Vector3(-4.5, 0.95, 0.2), 0.55)
     _create_crystal(shrine, Vector3(4.5, 0.95, 0.2), 0.55)
@@ -340,6 +342,17 @@ func _add_architecture_asset(parent: Node3D, asset_path: String, asset_position:
 func _create_architecture_details() -> void:
     # Photogrammetry stone bridge crossing above the playable trail.
     _add_architecture_asset(self, "res://assets/realistic/architecture/arch_bridge_stone.glb", Vector3(0.0, 0.0, -19.5), 0.22, 0.0)
+
+func _add_static_box_collision(parent: Node3D, local_position: Vector3, dimensions: Vector3, yaw: float) -> void:
+    var body := StaticBody3D.new()
+    body.position = local_position
+    body.rotation.y = yaw
+    var collision := CollisionShape3D.new()
+    var shape := BoxShape3D.new()
+    shape.size = dimensions
+    collision.shape = shape
+    body.add_child(collision)
+    parent.add_child(body)
 
 func _create_crystal_particles(parent: Node3D, particle_position: Vector3) -> void:
     crystal_particles = CPUParticles3D.new()
