@@ -21,6 +21,8 @@ var shrine_crystal_light: OmniLight3D
 var inventory_label: Label
 var pickup_notice_label: Label
 var pickups: Array[Dictionary] = []
+var torch_lights: Array[OmniLight3D] = []
+var crystal_particles: CPUParticles3D
 
 func _ready() -> void:
     rng.seed = 48291
@@ -28,6 +30,7 @@ func _ready() -> void:
     _create_environment()
     _create_ground()
     _create_ancient_shrine()
+    _create_architecture_details()
     _create_torches()
     _create_quest_hud()
     _create_inventory_hud()
@@ -37,6 +40,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     _update_pickups(delta)
+    var flicker_time := float(Time.get_ticks_msec()) * 0.001
+    for i in range(torch_lights.size()):
+        var torch_light := torch_lights[i]
+        if is_instance_valid(torch_light):
+            torch_light.light_energy = 0.58 + sin(flicker_time * 8.0 + float(i) * 1.7) * 0.09 + sin(flicker_time * 17.0 + float(i)) * 0.035
     if enemies_defeated >= 3 and not quest_complete:
         var player := get_node_or_null("Player") as Node3D
         if player != null:
@@ -94,7 +102,17 @@ func _create_environment() -> void:
     world_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     world_env.fog_enabled = true
     world_env.fog_light_color = Color(0.55, 0.65, 0.68)
-    world_env.fog_density = 0.006
+    world_env.fog_density = 0.0055
+    world_env.fog_sun_scatter = 0.22
+    world_env.fog_aerial_perspective = 0.35
+    world_env.glow_enabled = true
+    world_env.glow_intensity = 0.38
+    world_env.glow_strength = 0.82
+    world_env.glow_bloom = 0.08
+    world_env.adjustment_enabled = true
+    world_env.adjustment_brightness = 1.02
+    world_env.adjustment_contrast = 1.08
+    world_env.adjustment_saturation = 1.08
     var node := get_node_or_null("WorldEnvironment") as WorldEnvironment
     if node:
         node.environment = world_env
@@ -278,26 +296,71 @@ func _create_ancient_shrine() -> void:
     shrine.name = "AncientShrine"
     shrine.position = Vector3(0, 0, -35)
     add_child(shrine)
-    _box(shrine, "Shrine platform", Vector3(0, 0.18, 0), Vector3(10, 0.36, 7), dark_stone_material)
-    _box(shrine, "Upper step", Vector3(0, 0.43, 0.1), Vector3(7.5, 0.22, 5.2), stone_material)
-    for side in [-1.0, 1.0]:
-        for depth in [-1.0, 1.0]:
-            _box(shrine, "Ancient pillar", Vector3(side * 3.1, 2.05, depth * 1.75), Vector3(0.72, 3.25, 0.72), stone_material)
-            _box(shrine, "Pillar base", Vector3(side * 3.1, 0.62, depth * 1.75), Vector3(1.05, 0.34, 1.05), dark_stone_material)
-    _box(shrine, "Broken lintel", Vector3(0, 3.82, -1.75), Vector3(7.0, 0.55, 0.85), dark_stone_material)
-    _box(shrine, "Altar", Vector3(0, 1.05, -0.45), Vector3(2.2, 1.1, 1.55), dark_stone_material)
-    _box(shrine, "Altar top", Vector3(0, 1.66, -0.45), Vector3(2.65, 0.18, 1.9), stone_material)
-    _create_crystal(shrine, Vector3(0, 2.45, -0.45), 1.0)
-    _create_crystal(shrine, Vector3(-4.4, 1.1, 0), 0.55)
-    _create_crystal(shrine, Vector3(4.4, 1.1, 0), 0.55)
+
+    # Textured modular ruin assets replace the former cube-built temple.
+    _add_architecture_asset(shrine, "res://assets/realistic/architecture/roman_ruins.glb", Vector3.ZERO, 0.92, 0.0)
+    _add_architecture_asset(shrine, "res://assets/realistic/architecture/ruin_archway.glb", Vector3(0.0, 0.0, -2.9), 0.92, 0.0)
+    _add_architecture_asset(shrine, "res://assets/realistic/architecture/broken_column_stump.glb", Vector3(-4.3, 0.0, -0.6), 1.05, 0.35)
+    _add_architecture_asset(shrine, "res://assets/realistic/architecture/broken_column_stump.glb", Vector3(4.1, 0.0, -1.3), 0.88, -0.45)
+    _add_architecture_asset(shrine, "res://assets/realistic/architecture/ruin_wall_corner.glb", Vector3(-4.9, 0.0, -3.6), 0.9, 0.7)
+    _add_architecture_asset(shrine, "res://assets/realistic/architecture/ruin_wall_segment.glb", Vector3(4.6, 0.0, -4.0), 0.95, -0.3)
+
+    var altar := Node3D.new()
+    altar.name = "CrystalAltar"
+    altar.position = Vector3(0.0, 0.0, -0.35)
+    shrine.add_child(altar)
+    _box(altar, "Altar plinth", Vector3(0, 0.42, 0), Vector3(2.35, 0.84, 1.65), dark_stone_material)
+    _box(altar, "Altar capstone", Vector3(0, 0.88, 0), Vector3(2.75, 0.16, 1.92), stone_material)
+    _create_crystal(altar, Vector3(0, 1.65, 0), 1.0)
+    _create_crystal(shrine, Vector3(-4.5, 0.95, 0.2), 0.55)
+    _create_crystal(shrine, Vector3(4.5, 0.95, 0.2), 0.55)
+
     var title := Label3D.new()
-    title.text = "SANTUARIO ANTIGO"
-    title.position = Vector3(0, 4.8, -1.8)
+    title.text = "SANTUÁRIO ANTIGO"
+    title.position = Vector3(0, 5.1, -2.4)
     title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
     title.font_size = 40
     title.outline_size = 8
     title.modulate = Color(0.78, 0.91, 1.0)
     shrine.add_child(title)
+    _create_crystal_particles(shrine, Vector3(0, 1.8, -0.35))
+
+func _add_architecture_asset(parent: Node3D, asset_path: String, asset_position: Vector3, scale_value: float, yaw: float) -> void:
+    var packed := load(asset_path) as PackedScene
+    if packed == null:
+        push_warning("Aetheria: asset arquitetônico não carregado: " + asset_path)
+        return
+    var instance := packed.instantiate() as Node3D
+    if instance == null:
+        push_warning("Aetheria: asset arquitetônico sem raiz Node3D: " + asset_path)
+        return
+    instance.position = asset_position
+    instance.rotation.y = yaw
+    instance.scale = Vector3.ONE * scale_value
+    parent.add_child(instance)
+
+func _create_architecture_details() -> void:
+    # Photogrammetry stone bridge crossing above the playable trail.
+    _add_architecture_asset(self, "res://assets/realistic/architecture/arch_bridge_stone.glb", Vector3(0.0, 0.0, -19.5), 0.22, 0.0)
+
+func _create_crystal_particles(parent: Node3D, particle_position: Vector3) -> void:
+    crystal_particles = CPUParticles3D.new()
+    crystal_particles.name = "SanctuaryArcaneMotes"
+    crystal_particles.position = particle_position
+    crystal_particles.amount = 28
+    crystal_particles.lifetime = 2.8
+    crystal_particles.emitting = true
+    crystal_particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+    crystal_particles.emission_sphere_radius = 1.15
+    crystal_particles.direction = Vector3(0.0, 1.0, 0.0)
+    crystal_particles.spread = 34.0
+    crystal_particles.initial_velocity_min = 0.12
+    crystal_particles.initial_velocity_max = 0.42
+    crystal_particles.gravity = Vector3(0.0, 0.035, 0.0)
+    crystal_particles.scale_amount_min = 0.025
+    crystal_particles.scale_amount_max = 0.065
+    crystal_particles.color = Color(0.22, 0.72, 1.0, 0.85)
+    parent.add_child(crystal_particles)
 
 func _create_crystal(parent: Node3D, crystal_position: Vector3, scale_value: float) -> void:
     var crystal := MeshInstance3D.new()
@@ -350,6 +413,7 @@ func _create_torches() -> void:
             light.light_energy = 0.55
             light.omni_range = 5.0
             torch.add_child(light)
+            torch_lights.append(light)
 
 func _create_quest_hud() -> void:
     var layer := CanvasLayer.new()
