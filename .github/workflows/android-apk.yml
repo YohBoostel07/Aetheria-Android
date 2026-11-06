@@ -124,6 +124,10 @@ jobs:
           test -s assets/realistic/architecture/ruin_wall_corner.glb
           wget -q --show-progress https://grab3d.com/dl/ruin-wall-segment/ruin-wall-segment.glb -O assets/realistic/architecture/ruin_wall_segment.glb
           test -s assets/realistic/architecture/ruin_wall_segment.glb
+          wget -q --show-progress https://files.innerscene.com/library/rocky-outcrop-9f14ef52/f6e60f13403504661957/rocky-outcrop.glb -O assets/realistic/nature/rocky_outcrop.glb
+          test -s assets/realistic/nature/rocky_outcrop.glb
+          wget -q --show-progress https://files.innerscene.com/library/dry-stone-wall-section-f63adad9/8cd0e765f59a9bd3890f/dry-stone-wall-section.glb -O assets/realistic/nature/dry_stone_wall_section.glb
+          test -s assets/realistic/nature/dry_stone_wall_section.glb
 
       - name: Validate project
         run: godot --headless --editor --path . --quit
