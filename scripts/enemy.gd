@@ -9,7 +9,7 @@ signal defeated
 @export var attack_interval: float = 1.25
 @export var player_path: NodePath
 
-const SOMBRIO_MODEL_PATH := "res://assets/realistic/characters/horror_monster_light.glb"
+const SOMBRIO_MODEL_PATH := "res://assets/realistic/characters/horror_monster_rigged.glb"
 # The source GLB faces +Z; Godot's CharacterBody3D forward convention is -Z.
 const MODEL_FORWARD_CORRECTION := PI
 
@@ -141,6 +141,21 @@ func _build_creature() -> void:
     imported.position = Vector3.ZERO
     imported.scale = Vector3.ONE * 0.96
     _collect_model_materials(imported)
+
+    # The CI rigging pass embeds a real skeletal Walk clip in this GLB.
+    var animation_player := imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
+    if animation_player != null:
+        var walk_animation := ""
+        for animation_name in animation_player.get_animation_list():
+            if String(animation_name).to_lower().contains("walk"):
+                walk_animation = String(animation_name)
+                break
+        if walk_animation != "":
+            animation_player.play(walk_animation)
+        else:
+            push_warning("Sombrio rigged GLB imported without a Walk animation.")
+    else:
+        push_warning("Sombrio rigged GLB imported without an AnimationPlayer.")
 
     health_label = Label3D.new()
     health_label.text = "SOMBRIO  %d/%d" % [health, max_health]
