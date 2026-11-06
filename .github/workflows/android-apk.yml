@@ -104,6 +104,9 @@ jobs:
       - name: Validate project
         run: godot --headless --editor --path . --quit
 
+      - name: Runtime smoke test for protagonist, Sombrio and world
+        run: godot --headless --path . --quit-after 90
+
       - name: Export Android debug APK
         run: |
           godot --headless --verbose --path . --export-debug "Android" build/Aetheria-debug.apk
