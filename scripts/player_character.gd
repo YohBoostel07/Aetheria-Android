@@ -70,6 +70,12 @@ func _load_hero() -> void:
         push_error("Aetheria: o modelo do protagonista foi importado sem AnimationPlayer.")
     else:
         for animation_name in animation_player.get_animation_list():
+            var clip := animation_player.get_animation(animation_name)
+            var key := String(animation_name).to_lower()
+            if "walk" in key or "run" in key or "idle" in key:
+                clip.loop_mode = Animation.LOOP_LINEAR
+            else:
+                clip.loop_mode = Animation.LOOP_NONE
             print("Aetheria hero animation: ", animation_name)
 
     spine_bone_index = _find_bone_index(["spine"])
@@ -553,6 +559,7 @@ func animate_character(delta: float, horizontal_speed: float, airborne: bool) ->
             if current_animation != attack_clip:
                 current_animation = attack_clip
                 animation_player.play(attack_clip, 0.06)
+            animation_player.speed_scale = 1.0
             return
     var target := ""
     if airborne:
@@ -591,5 +598,6 @@ func play_attack() -> void:
         sword_sparks.emitting = true
     var attack_animation := _animation_with("attack")
     if animation_player != null and attack_animation != "":
+        animation_player.speed_scale = 1.0
         animation_player.play(attack_animation, 0.06)
         current_animation = attack_animation
