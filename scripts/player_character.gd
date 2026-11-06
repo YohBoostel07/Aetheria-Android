@@ -11,6 +11,8 @@ var cape_mesh: MeshInstance3D
 var current_animation := ""
 var attack_time := 0.0
 var sword_rest_rotation := Vector3.ZERO
+var sword_sparks: CPUParticles3D
+var blade_light: OmniLight3D
 var walk_phase := 0.0
 var idle_breath_time := 0.0
 var spine_bone_index := -1
@@ -27,6 +29,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     attack_time = maxf(0.0, attack_time - delta)
+    if blade_light != null:
+        blade_light.light_energy = 0.28 + (0.9 if attack_time > 0.0 else 0.0)
     if sword_root != null:
         if attack_time > 0.0:
             var progress := 1.0 - attack_time / 0.42
@@ -471,6 +475,30 @@ func _attach_sword() -> void:
     sword.position = Vector3.ZERO
     sword_rest_rotation = sword_root.rotation
 
+    sword_sparks = CPUParticles3D.new()
+    sword_sparks.name = "BlueSwordSlashSparks"
+    sword_sparks.amount = 18
+    sword_sparks.lifetime = 0.32
+    sword_sparks.one_shot = true
+    sword_sparks.emitting = false
+    sword_sparks.direction = Vector3(0.0, 0.0, -1.0)
+    sword_sparks.spread = 65.0
+    sword_sparks.initial_velocity_min = 0.65
+    sword_sparks.initial_velocity_max = 1.8
+    sword_sparks.gravity = Vector3(0.0, -0.25, 0.0)
+    sword_sparks.scale_amount_min = 0.018
+    sword_sparks.scale_amount_max = 0.045
+    sword_sparks.color = Color(0.18, 0.58, 1.0, 0.9)
+    sword_root.add_child(sword_sparks)
+
+    blade_light = OmniLight3D.new()
+    blade_light.name = "SwordBlueEdgeLight"
+    blade_light.light_color = Color(0.10, 0.42, 1.0)
+    blade_light.light_energy = 0.28
+    blade_light.omni_range = 2.0
+    blade_light.position = Vector3(0.0, 0.22, 0.0)
+    sword_root.add_child(blade_light)
+
 func animate_character(delta: float, horizontal_speed: float, airborne: bool) -> void:
     walk_phase += delta * (5.0 + horizontal_speed * 1.7)
     if animation_player == null:
@@ -506,6 +534,10 @@ func _animation_with(fragment: String) -> String:
 
 func play_attack() -> void:
     attack_time = 0.42
+    if sword_sparks != null:
+        sword_sparks.emitting = false
+        sword_sparks.restart()
+        sword_sparks.emitting = true
     var attack_animation := _animation_with("attack")
     if animation_player != null and attack_animation != "":
         animation_player.play(attack_animation, 0.06)
