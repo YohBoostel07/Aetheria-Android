@@ -234,6 +234,23 @@ for frame, phase in [(1, 0.0), (13, math.pi * 0.5), (25, math.pi), (37, math.pi 
     }))
 idle = create_action("Idle", idle_poses, True)
 
+# Authored skeletal locomotion guarantees real leg and arm movement on the rig.
+walk = create_action("Aetheria_Walk", [
+    (1,  {"hips": (0.0, 0.0, -0.018), "spine": (0.025, 0.0, 0.0), "upper_leg_r": (0.42, 0.0, 0.0), "lower_leg_r": (-0.18, 0.0, 0.0), "upper_leg_l": (-0.42, 0.0, 0.0), "lower_leg_l": (0.08, 0.0, 0.0), "upper_arm_r": (-0.34, 0.0, 0.0), "upper_arm_l": (0.34, 0.0, 0.0)}),
+    (7,  {"hips": (0.0, 0.0, 0.018), "spine": (-0.015, 0.0, 0.0), "upper_leg_r": (0.0, 0.0, 0.0), "lower_leg_r": (-0.48, 0.0, 0.0), "upper_leg_l": (0.0, 0.0, 0.0), "lower_leg_l": (-0.42, 0.0, 0.0), "upper_arm_r": (0.0, 0.0, 0.0), "upper_arm_l": (0.0, 0.0, 0.0)}),
+    (13, {"hips": (0.0, 0.0, -0.018), "spine": (0.025, 0.0, 0.0), "upper_leg_r": (-0.42, 0.0, 0.0), "lower_leg_r": (0.08, 0.0, 0.0), "upper_leg_l": (0.42, 0.0, 0.0), "lower_leg_l": (-0.18, 0.0, 0.0), "upper_arm_r": (0.34, 0.0, 0.0), "upper_arm_l": (-0.34, 0.0, 0.0)}),
+    (19, {"hips": (0.0, 0.0, 0.018), "spine": (-0.015, 0.0, 0.0), "upper_leg_r": (0.0, 0.0, 0.0), "lower_leg_r": (-0.42, 0.0, 0.0), "upper_leg_l": (0.0, 0.0, 0.0), "lower_leg_l": (-0.48, 0.0, 0.0), "upper_arm_r": (0.0, 0.0, 0.0), "upper_arm_l": (0.0, 0.0, 0.0)}),
+    (25, {"hips": (0.0, 0.0, -0.018), "spine": (0.025, 0.0, 0.0), "upper_leg_r": (0.42, 0.0, 0.0), "lower_leg_r": (-0.18, 0.0, 0.0), "upper_leg_l": (-0.42, 0.0, 0.0), "lower_leg_l": (0.08, 0.0, 0.0), "upper_arm_r": (-0.34, 0.0, 0.0), "upper_arm_l": (0.34, 0.0, 0.0)}),
+], True)
+
+run = create_action("Aetheria_Run", [
+    (1,  {"hips": (0.0, 0.0, -0.045), "spine": (0.12, 0.0, 0.0), "chest": (0.045, 0.0, 0.0), "upper_leg_r": (0.72, 0.0, 0.0), "lower_leg_r": (-0.28, 0.0, 0.0), "upper_leg_l": (-0.62, 0.0, 0.0), "lower_leg_l": (0.22, 0.0, 0.0), "upper_arm_r": (-0.62, 0.0, 0.0), "upper_arm_l": (0.62, 0.0, 0.0)}),
+    (5,  {"hips": (0.0, 0.0, 0.05), "spine": (0.10, 0.0, 0.0), "upper_leg_r": (0.0, 0.0, 0.0), "lower_leg_r": (-0.82, 0.0, 0.0), "upper_leg_l": (0.0, 0.0, 0.0), "lower_leg_l": (-0.72, 0.0, 0.0), "upper_arm_r": (0.0, 0.0, 0.0), "upper_arm_l": (0.0, 0.0, 0.0)}),
+    (9,  {"hips": (0.0, 0.0, -0.045), "spine": (0.12, 0.0, 0.0), "chest": (0.045, 0.0, 0.0), "upper_leg_r": (-0.62, 0.0, 0.0), "lower_leg_r": (0.22, 0.0, 0.0), "upper_leg_l": (0.72, 0.0, 0.0), "lower_leg_l": (-0.28, 0.0, 0.0), "upper_arm_r": (0.62, 0.0, 0.0), "upper_arm_l": (-0.62, 0.0, 0.0)}),
+    (13, {"hips": (0.0, 0.0, 0.05), "spine": (0.10, 0.0, 0.0), "upper_leg_r": (0.0, 0.0, 0.0), "lower_leg_r": (-0.72, 0.0, 0.0), "upper_leg_l": (0.0, 0.0, 0.0), "lower_leg_l": (-0.82, 0.0, 0.0), "upper_arm_r": (0.0, 0.0, 0.0), "upper_arm_l": (0.0, 0.0, 0.0)}),
+    (17, {"hips": (0.0, 0.0, -0.045), "spine": (0.12, 0.0, 0.0), "chest": (0.045, 0.0, 0.0), "upper_leg_r": (0.72, 0.0, 0.0), "lower_leg_r": (-0.28, 0.0, 0.0), "upper_leg_l": (-0.62, 0.0, 0.0), "lower_leg_l": (0.22, 0.0, 0.0), "upper_arm_r": (-0.62, 0.0, 0.0), "upper_arm_l": (0.62, 0.0, 0.0)}),
+], True)
+
 jump = create_action("Jump", [
     (1, {}),
     (4, {"hips": (0.0, 0.0, -0.035), "upper_leg_r": (0.38, 0.0, 0.0), "upper_leg_l": (0.38, 0.0, 0.0), "lower_leg_r": (-0.62, 0.0, 0.0), "lower_leg_l": (-0.62, 0.0, 0.0), "upper_arm_r": (-0.32, 0.0, 0.0), "upper_arm_l": (-0.32, 0.0, 0.0)}),
