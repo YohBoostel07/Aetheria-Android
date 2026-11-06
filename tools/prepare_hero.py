@@ -42,6 +42,73 @@ bones = {
     "lower_leg_l": find_bone("lowerleg", "l") or find_bone("left", "lowerleg"),
 }
 print("HERO_RIG_BONES", bones)
+
+# Build fitted dark fabric leg armor on the actual rig, covering the base mesh shorts.
+cloth = bpy.data.materials.new("Hero Midnight Cloth PBR")
+cloth.diffuse_color = (0.018, 0.028, 0.06, 1.0)
+cloth.use_nodes = True
+principled = cloth.node_tree.nodes.get("Principled BSDF")
+if principled:
+    principled.inputs["Base Color"].default_value = (0.018, 0.028, 0.06, 1.0)
+    principled.inputs["Roughness"].default_value = 0.88
+    principled.inputs["Metallic"].default_value = 0.04
+
+def add_leg_shell(bone_name, object_name, radius_start, radius_end):
+    if not bone_name:
+        return
+    bone = armature.data.bones.get(bone_name)
+    if bone is None:
+        return
+    start = bone.head_local.copy()
+    end = bone.tail_local.copy()
+    axis_vector = end - start
+    length = axis_vector.length
+    if length < 0.08:
+        return
+    axis = axis_vector.normalized()
+    tangent = axis.cross(Vector((1.0, 0.0, 0.0))).normalized()
+    if tangent.length < 0.01:
+        tangent = axis.cross(Vector((0.0, 1.0, 0.0))).normalized()
+    bitangent = axis.cross(tangent).normalized()
+    vertices = []
+    faces = []
+    rings = 12
+    segments = 16
+    for ring in range(rings):
+        t = ring / float(rings - 1)
+        radius = (radius_start * (1.0 - t) + radius_end * t) * (1.0 + math.sin(t * math.pi * 6.0) * 0.018)
+        center = start.lerp(end, t)
+        for segment in range(segments):
+            angle = math.tau * segment / float(segments)
+            offset = tangent * math.cos(angle) * radius + bitangent * math.sin(angle) * radius
+            vertices.append(center + offset)
+    for ring in range(rings - 1):
+        for segment in range(segments):
+            a = ring * segments + segment
+            b = ring * segments + (segment + 1) % segments
+            d = (ring + 1) * segments + (segment + 1) % segments
+            e = (ring + 1) * segments + segment
+            faces.append((a, b, d, e))
+    mesh = bpy.data.meshes.new(object_name + "Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(cloth)
+    mesh.update()
+    obj = bpy.data.objects.new(object_name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.parent = armature
+    obj.matrix_world = armature.matrix_world.copy()
+    group = obj.vertex_groups.new(name=bone_name)
+    group.add(list(range(len(vertices))), 1.0, "REPLACE")
+    modifier = obj.modifiers.new("Hero leg rig", "ARMATURE")
+    modifier.object = armature
+    meshes.append(obj)
+
+for side in ["r", "l"]:
+    upper = bones.get("upper_leg_" + side)
+    lower = bones.get("lower_leg_" + side)
+    add_leg_shell(upper, "HeroDarkTrousers_" + side.upper(), 0.095, 0.078)
+    add_leg_shell(lower, "HeroDarkShin_" + side.upper(), 0.078, 0.066)
+
 for pose_bone in armature.pose.bones:
     pose_bone.rotation_mode = "XYZ"
 
