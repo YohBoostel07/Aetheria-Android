@@ -1,6 +1,9 @@
 import bpy
 import math
 import sys
+
+# Blender bundles its own Python; expose the distro NumPy installed by CI.
+sys.path.append("/usr/lib/python3/dist-packages")
 from mathutils import Vector, Matrix
 
 args = sys.argv[sys.argv.index("--") + 1:]
