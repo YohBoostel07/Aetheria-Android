@@ -193,6 +193,7 @@ func _build_creature() -> void:
     animation_player = imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
     if animation_player != null:
         for animation_name in animation_player.get_animation_list():
+            print("Aetheria Sombrio animation: ", animation_name)
             var clip := animation_player.get_animation(animation_name)
             var key := String(animation_name).to_lower()
             if "walk" in key:
