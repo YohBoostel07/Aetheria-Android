@@ -25,6 +25,11 @@ var is_defeated := false
 var is_walking := false
 var hit_particles: CPUParticles3D
 var aura_light: OmniLight3D
+var animation_player: AnimationPlayer
+var walk_animation_name := ""
+var idle_animation_name := ""
+var attack_animation_name := ""
+var attack_animation_time := 0.0
 
 func _ready() -> void:
     add_to_group("enemies")
@@ -35,11 +40,13 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
     if is_defeated:
         return
+    attack_animation_time = maxf(0.0, attack_animation_time - delta)
 
     if player == null or not is_instance_valid(player) or int(player.get("health")) <= 0:
         velocity.x = move_toward(velocity.x, 0.0, 12.0 * delta)
         velocity.z = move_toward(velocity.z, 0.0, 12.0 * delta)
         is_walking = false
+        _play_enemy_animation(idle_animation_name)
         _update_locomotion(delta)
         if not is_on_floor():
             velocity.y -= 9.8 * delta
@@ -64,13 +71,20 @@ func _physics_process(delta: float) -> void:
         velocity.z = move_toward(velocity.z, direction.z * move_speed, 14.0 * delta)
         rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), 12.0 * delta)
         is_walking = Vector2(velocity.x, velocity.z).length() > 0.18
+        _play_enemy_animation(walk_animation_name if is_walking else idle_animation_name)
     else:
         velocity.x = move_toward(velocity.x, 0.0, 16.0 * delta)
         velocity.z = move_toward(velocity.z, 0.0, 16.0 * delta)
         is_walking = false
         if attack_timer <= 0.0:
             attack_timer = attack_interval
+            attack_animation_time = 0.55
+            _play_enemy_animation(attack_animation_name)
             player.call("take_damage", attack_damage)
+        elif attack_animation_time > 0.0:
+            _play_enemy_animation(attack_animation_name)
+        else:
+            _play_enemy_animation(idle_animation_name)
 
     if not is_on_floor():
         velocity.y -= 9.8 * delta
@@ -87,7 +101,7 @@ func _update_locomotion(delta: float) -> void:
     if is_walking:
         walk_phase += delta * 8.0
         # Keep the feet planted: no vertical bobbing. This is only a restrained
-        # torso weight shift until the creature receives a proper skeletal rig.
+        # subtle weight shift layered over the skeletal walk clip.
         model_root.rotation.x = lerpf(model_root.rotation.x, -0.045, 7.0 * delta)
         model_root.rotation.z = lerpf(model_root.rotation.z, sin(walk_phase) * 0.035, 9.0 * delta)
     else:
@@ -176,17 +190,26 @@ func _build_creature() -> void:
     add_child(hit_particles)
 
     # The CI rigging pass embeds a real skeletal Walk clip in this GLB.
-    var animation_player := imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
+    animation_player = imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
     if animation_player != null:
-        var walk_animation := ""
         for animation_name in animation_player.get_animation_list():
-            if String(animation_name).to_lower().contains("walk"):
-                walk_animation = String(animation_name)
-                break
-        if walk_animation != "":
-            animation_player.play(walk_animation)
+            var clip := animation_player.get_animation(animation_name)
+            var key := String(animation_name).to_lower()
+            if "walk" in key:
+                walk_animation_name = String(animation_name)
+                clip.loop_mode = Animation.LOOP_LINEAR
+            elif "idle" in key:
+                idle_animation_name = String(animation_name)
+                clip.loop_mode = Animation.LOOP_LINEAR
+            elif "attack" in key:
+                attack_animation_name = String(animation_name)
+                clip.loop_mode = Animation.LOOP_NONE
+        if idle_animation_name != "":
+            animation_player.play(idle_animation_name)
+        elif walk_animation_name != "":
+            animation_player.play(walk_animation_name)
         else:
-            push_warning("Sombrio rigged GLB imported without a Walk animation.")
+            push_warning("Sombrio rigged GLB imported without locomotion clips.")
     else:
         push_warning("Sombrio rigged GLB imported without an AnimationPlayer.")
 
@@ -198,6 +221,12 @@ func _build_creature() -> void:
     health_label.outline_size = 7
     health_label.modulate = Color(1.0, 0.72, 0.68)
     add_child(health_label)
+
+func _play_enemy_animation(animation_name: String) -> void:
+    if animation_player == null or animation_name == "":
+        return
+    if animation_player.current_animation != animation_name or not animation_player.is_playing():
+        animation_player.play(animation_name, 0.12)
 
 func _collect_model_materials(node: Node) -> void:
     if node is MeshInstance3D:
